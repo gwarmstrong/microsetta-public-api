@@ -11,14 +11,12 @@ class TestConfig(TempfileTestCase):
         with self.assertRaisesRegex(ConfigurationError, 'dictionary'):
             config._validate_resource_locations(resource_locations)
 
-
     def test_validate_resource_locations_non_string_resource_key(self):
         resource_locations = {9: '/some/file/path'}
         config = ResourcesConfig()
         with self.assertRaisesRegex(ConfigurationError, 'keys must be '
                                                         'strings'):
             config._validate_resource_locations(resource_locations)
-
 
     def test_validate_resource_locations_non_existing_resource_value(self):
         file_ = self.create_tempfile()
@@ -31,4 +29,3 @@ class TestConfig(TempfileTestCase):
                                                         'existing '
                                                         'file paths'):
             config._validate_resource_locations(resource_locations)
-
