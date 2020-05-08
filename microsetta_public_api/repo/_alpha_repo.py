@@ -2,7 +2,6 @@ from microsetta_public_api import config
 from microsetta_public_api.exceptions import ConfigurationError, UnknownMetric
 from qiime2 import Artifact
 from q2_types.sample_data import AlphaDiversity, SampleData
-import os
 import pandas as pd
 
 
@@ -16,27 +15,8 @@ class AlphaRepo:
     def __init__(self):
         self.resource_locations = config.resources.get('alpha_resources', None)
         if self.resource_locations is not None:
-            self._validate_resource_locations(self.resource_locations)
             # leaving as None here allows lazy loading of resources
             self.resources = {key: None for key in self.resource_locations}
-
-    @staticmethod
-    def _validate_resource_locations(resource_locations):
-        if not isinstance(resource_locations, dict):
-            raise ConfigurationError('`alpha_resources` must be '
-                                     'able to be parsed into a python '
-                                     'dictionary.')
-        all_keys_str = all(isinstance(key, str) for key in
-                           resource_locations)
-        if not all_keys_str:
-            raise ConfigurationError('All `alpha_resources` keys must be '
-                                     'strings.')
-        all_values_fp = all(os.path.exists(val) for val in
-                            resource_locations.values())
-        if not all_values_fp:
-            raise ConfigurationError('All `alpha_resources` values must be '
-                                     'existing file paths.')
-        return True
 
     def _load_resource(self, metric):
         if metric not in self.available_metrics():

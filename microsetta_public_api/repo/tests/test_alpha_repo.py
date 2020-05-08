@@ -22,31 +22,6 @@ class TestAlphaRepoHelpers(TempfileTestCase):
                                                        "'fake-test-metric'"):
                 alpha_repo._load_resource('fake-test-metric')
 
-    def test_validate_resource_locations_non_dict(self):
-        resource_locations = ['alpha', 'beta']
-        alpha_repo = AlphaRepo()
-        with self.assertRaisesRegex(ConfigurationError, 'dictionary'):
-            alpha_repo._validate_resource_locations(resource_locations)
-
-    def test_validate_resource_locations_non_string_resource_key(self):
-        resource_locations = {9: '/some/file/path'}
-        alpha_repo = AlphaRepo()
-        with self.assertRaisesRegex(ConfigurationError, 'keys must be '
-                                                        'strings'):
-            alpha_repo._validate_resource_locations(resource_locations)
-
-    def test_validate_resource_locations_non_existing_resource_value(self):
-        file_ = self.create_tempfile()
-        # closing the file removes it from the filesystem
-        file_.close()
-
-        resource_locations = {'some-metric': file_.name}
-        alpha_repo = AlphaRepo()
-        with self.assertRaisesRegex(ConfigurationError, 'must be '
-                                                        'existing '
-                                                        'file paths'):
-            alpha_repo._validate_resource_locations(resource_locations)
-
     def test_parse_q2_data(self):
         resource_filename = self.create_tempfile(suffix='.qza').name
         test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
