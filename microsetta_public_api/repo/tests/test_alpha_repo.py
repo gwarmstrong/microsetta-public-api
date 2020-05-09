@@ -5,9 +5,10 @@ from qiime2 import Artifact
 from pandas.testing import assert_series_equal
 
 from microsetta_public_api import config
+from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import TempfileTestCase
 from microsetta_public_api.repo._alpha_repo import AlphaRepo
-from microsetta_public_api.exceptions import ConfigurationError, UnknownMetric
+from microsetta_public_api.exceptions import UnknownMetric
 
 
 class TestAlphaRepoHelpers(TempfileTestCase):
@@ -20,48 +21,7 @@ class TestAlphaRepoHelpers(TempfileTestCase):
                                                        "available for "
                                                        "metric="
                                                        "'fake-test-metric'"):
-                alpha_repo._load_resource('fake-test-metric')
-
-    def test_parse_q2_data(self):
-        resource_filename = self.create_tempfile(suffix='.qza').name
-        test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
-                                name='chao1')
-        imported_artifact = Artifact.import_data(
-            "SampleData[AlphaDiversity]", test_series
-        )
-        imported_artifact.save(resource_filename)
-
-        repo = AlphaRepo()
-        loaded_artifact = repo._parse_q2_data(resource_filename)
-        assert_series_equal(test_series, loaded_artifact)
-
-    def test_parse_q2_data_wrong_semantic_type(self):
-        resource_filename = self.create_tempfile(suffix='.qza').name
-        test_series = pd.Series({'feature1': 'k__1', 'feature2': 'k__2'},
-                                name='Taxon')
-        test_series.index.name = 'Feature ID'
-        imported_artifact = Artifact.import_data(
-            # the distincion here is that this is not alpha diversity
-            "FeatureData[Taxonomy]", test_series
-        )
-        imported_artifact.save(resource_filename)
-
-        repo = AlphaRepo()
-        with self.assertRaisesRegex(ConfigurationError,
-                                    r"Expected alpha diversity to have type "
-                                    r"'SampleData\[AlphaDiversity\]'. "
-                                    r"Received 'FeatureData\[Taxonomy\]'."):
-            repo._parse_q2_data(resource_filename)
-
-    def test_parse_q2_data_file_does_not_exist(self):
-        resource_file = self.create_tempfile(suffix='.qza')
-        resource_filename = resource_file.name
-        resource_file.close()
-
-        repo = AlphaRepo()
-        with self.assertRaisesRegex(ConfigurationError,
-                                    r"does not exist"):
-            repo._parse_q2_data(resource_filename)
+                alpha_repo._get_resource('fake-test-metric')
 
 
 class TestAlphaRepoWithResources(TempfileTestCase):
@@ -91,6 +51,8 @@ class TestAlphaRepoWithResources(TempfileTestCase):
                 'faith_pd': resource_filename2,
             }
         })
+        resources.update(config.resources)
+
         self.repo = AlphaRepo()
 
     def test_available_metrics(self):

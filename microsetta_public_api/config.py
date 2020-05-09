@@ -12,7 +12,7 @@ class ResourcesConfig(dict):
             if resource_field in self:
                 self._validate_resource_locations(self[resource_field])
 
-        super().update(_m, **kwargs)
+        return super().update(_m, **kwargs)
 
     @staticmethod
     def _validate_resource_locations(resource_locations):
