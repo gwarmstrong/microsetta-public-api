@@ -205,7 +205,7 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
-  '/taxonomy/resources/available':
+  '/taxonomy/available':
     get:
       operationId: microsetta_public_api.api.taxonomy.resources_available
       tags:
