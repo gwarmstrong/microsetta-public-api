@@ -59,10 +59,10 @@ class ResourceManager(dict):
     dict_of_qza_resources = {'alpha_resources': SampleData[AlphaDiversity]}
 
     resource_formats = {
-        'alpha_resources': ({
-            'from': Dict[str, str],
-            'to': Dict[str, _AlphaSampleData],
-        }),
+        'alpha_resources': (
+            Dict[str, str],
+            Dict[str, _AlphaSampleData],
+        ),
     }
 
     transformers = {
@@ -106,14 +106,16 @@ class ResourceManager(dict):
             raise TypeError(f'update expected at most 1 positional argument '
                             f'that is a dict. Got {args}')
 
-        for resource_name, type_ in self.dict_of_qza_resources.items():
+        for resource_name in self.resource_formats:
+            transformer = self.transformers[
+                self.resource_formats[resource_name]]
             if resource_name in other:
-                new_resource = _str_str_to_str_alpha(other[resource_name],
-                                                     resource_name)
+                new_resource = transformer(other[resource_name],
+                                           resource_name)
                 other.update(new_resource)
             if resource_name in kwargs:
-                new_resource = _str_str_to_str_alpha(kwargs[resource_name],
-                                                     resource_name)
+                new_resource = transformer(kwargs[resource_name],
+                                           resource_name)
                 kwargs.update(new_resource)
 
         return super().update(other, **kwargs)
