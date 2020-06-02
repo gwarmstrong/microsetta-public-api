@@ -9,8 +9,13 @@ from typing import Dict, Any, NewType
 _AlphaSampleData = NewType('SampleData[AlphaDiversity]', Any)
 
 
-def _str_str_to_str_alpha():
-    pass
+def _str_str_to_str_alpha(dict_of_qza_paths, resource_name):
+    _validate_dict_of_qza_paths(dict_of_qza_paths,
+                                resource_name)
+    new_resource = _replace_paths_with_qza(dict_of_qza_paths,
+                                           resource_name,
+                                           SampleData[AlphaDiversity])
+    return new_resource
 
 
 def _parse_q2_data(filepath, semantic_type):
@@ -103,17 +108,13 @@ class ResourceManager(dict):
 
         for resource_name, type_ in self.dict_of_qza_resources.items():
             if resource_name in other:
-                _validate_dict_of_qza_paths(other[resource_name],
-                                            resource_name)
-                other.update(_replace_paths_with_qza(other[resource_name],
-                                                     resource_name,
-                                                     type_))
+                new_resource = _str_str_to_str_alpha(other[resource_name],
+                                                     resource_name)
+                other.update(new_resource)
             if resource_name in kwargs:
-                _validate_dict_of_qza_paths(kwargs[resource_name],
-                                            resource_name)
-                kwargs.update(_replace_paths_with_qza(kwargs[resource_name],
-                                                      resource_name,
-                                                      type_))
+                new_resource = _str_str_to_str_alpha(kwargs[resource_name],
+                                                     resource_name)
+                kwargs.update(new_resource)
 
         return super().update(other, **kwargs)
 
