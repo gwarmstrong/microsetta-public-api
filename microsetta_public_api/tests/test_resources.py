@@ -5,7 +5,7 @@ from q2_types.sample_data import SampleData, AlphaDiversity
 
 from microsetta_public_api.exceptions import ConfigurationError
 from microsetta_public_api.utils.testing import TempfileTestCase
-from microsetta_public_api.resources import ResourceManager
+from microsetta_public_api.resources import ResourceManager, _parse_q2_data
 
 
 class TestResourceManager(TempfileTestCase):
@@ -103,9 +103,8 @@ class TestResourceManager(TempfileTestCase):
         )
         imported_artifact.save(resource_filename)
 
-        res = ResourceManager()
-        loaded_artifact = res._parse_q2_data(resource_filename,
-                                             SampleData[AlphaDiversity])
+        loaded_artifact = _parse_q2_data(resource_filename,
+                                         SampleData[AlphaDiversity])
         assert_series_equal(test_series, loaded_artifact)
 
     def test_parse_q2_data_wrong_semantic_type(self):
@@ -119,19 +118,17 @@ class TestResourceManager(TempfileTestCase):
         )
         imported_artifact.save(resource_filename)
 
-        res = ResourceManager()
         with self.assertRaisesRegex(ConfigurationError,
                                     r"Expected (.*) "
                                     r"'SampleData\[AlphaDiversity\]'. "
                                     r"Received 'FeatureData\[Taxonomy\]'."):
-            res._parse_q2_data(resource_filename, SampleData[AlphaDiversity])
+            _parse_q2_data(resource_filename, SampleData[AlphaDiversity])
 
     def test_parse_q2_data_file_does_not_exist(self):
         resource_file = self.create_tempfile(suffix='.qza')
         resource_filename = resource_file.name
         resource_file.close()
 
-        res = ResourceManager()
         with self.assertRaisesRegex(ConfigurationError,
                                     r"does not exist"):
-            res._parse_q2_data(resource_filename, SampleData[AlphaDiversity])
+            _parse_q2_data(resource_filename, SampleData[AlphaDiversity])

@@ -4,11 +4,62 @@ from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
 from qiime2 import Artifact
 from q2_types.sample_data import AlphaDiversity, SampleData
+from typing import Dict, Any, NewType
+
+_AlphaSampleData = NewType('SampleData[AlphaDiversity]', Any)
+
+
+def _str_str_to_str_alpha():
+    pass
+
+
+def _parse_q2_data(filepath, semantic_type):
+    try:
+        data = Artifact.load(filepath)
+    except ValueError as e:
+        raise ConfigurationError(*e.args)
+
+    if data.type != semantic_type:
+        raise ConfigurationError(f"Expected QZA '{filepath}' to have type "
+                                 f"'{semantic_type}'. "
+                                 f"Received '{data.type}'.")
+
+    return data.view(pd.Series)
+
+
+def _replace_paths_with_qza(resource, name, semantic_type):
+    dict_of_qza_paths = resource[name]
+    if not isinstance(dict_of_qza_paths, dict):
+        raise ValueError(f"Expected '{name}' field to contain a dict. "
+                         f"Got {type(resource[name]).__name__}")
+    new_resource = deepcopy(resource)
+    for key, value in dict_of_qza_paths.items():
+        value_is_existing_qza_path = isinstance(value, str) and \
+                                     (value[-4:] == '.qza') and os.path.exists(value)
+        if value_is_existing_qza_path:
+            new_resource[name][key] = _parse_q2_data(value,
+                                                     semantic_type)
+        else:
+            raise ValueError(f'Expected existing path with .qza '
+                             f'extension. Got: {value}')
+    return new_resource
 
 
 class ResourceManager(dict):
 
     dict_of_qza_resources = {'alpha_resources': SampleData[AlphaDiversity]}
+
+    resource_formats = {
+        'alpha_resources': ({
+            'from': Dict[str, str],
+            'to': Dict[str, _AlphaSampleData],
+        }),
+    }
+
+    transformers = {
+        (Dict[str, str],
+         Dict[str, _AlphaSampleData]): _str_str_to_str_alpha,
+    }
 
     def update(self, other, **kwargs):
         """
@@ -40,44 +91,13 @@ class ResourceManager(dict):
         """
         for resource_name, type_ in self.dict_of_qza_resources.items():
             if resource_name in other:
-                other = self._replace_paths_with_qza(other, resource_name,
-                                                     type_)
+                other = _replace_paths_with_qza(other, resource_name,
+                                                type_)
             if resource_name in kwargs:
-                kwargs = self._replace_paths_with_qza(kwargs, resource_name,
-                                                      type_)
+                kwargs = _replace_paths_with_qza(kwargs, resource_name,
+                                                 type_)
 
         return super().update(other, **kwargs)
-
-    def _replace_paths_with_qza(self, resource, name, semantic_type):
-        dict_of_qza_paths = resource[name]
-        if not isinstance(dict_of_qza_paths, dict):
-            raise ValueError(f"Expected '{name}' field to contain a dict. "
-                             f"Got {type(resource[name]).__name__}")
-        new_resource = deepcopy(resource)
-        for key, value in dict_of_qza_paths.items():
-            value_is_existing_qza_path = isinstance(value, str) and \
-                (value[-4:] == '.qza') and os.path.exists(value)
-            if value_is_existing_qza_path:
-                new_resource[name][key] = self._parse_q2_data(value,
-                                                              semantic_type)
-            else:
-                raise ValueError(f'Expected existing path with .qza '
-                                 f'extension. Got: {value}')
-        return new_resource
-
-    @staticmethod
-    def _parse_q2_data(filepath, semantic_type):
-        try:
-            data = Artifact.load(filepath)
-        except ValueError as e:
-            raise ConfigurationError(*e.args)
-
-        if data.type != semantic_type:
-            raise ConfigurationError(f"Expected QZA '{filepath}' to have type "
-                                     f"'{semantic_type}'. "
-                                     f"Received '{data.type}'.")
-
-        return data.view(pd.Series)
 
 
 resources = ResourceManager()
