@@ -85,14 +85,30 @@ class TestResourceManager(TempfileTestCase):
 
         with self.assertRaisesRegex(ValueError,
                                     'Expected existing path with .qza'):
+            update_with['faith_pd'] = qza_resource_fp2
+            resources.update(alpha_resources=update_with)
+
+        with self.assertRaisesRegex(ValueError,
+                                    'Expected existing path with .qza'):
             update_with['alpha_resources']['faith_pd'] = non_qza_resource_fp
             resources.update(update_with)
+
+        with self.assertRaisesRegex(ValueError,
+                                    'Expected existing path with .qza'):
+            update_with['faith_pd'] = non_qza_resource_fp
+            resources.update(alpha_resources=update_with)
 
         with self.assertRaisesRegex(ValueError,
                                     "Expected 'alpha_resources' field to "
                                     "contain a dict. Got int"):
             update_with['alpha_resources'] = 9
             resources.update(update_with)
+
+        with self.assertRaisesRegex(ValueError,
+                                    "Expected 'alpha_resources' field to "
+                                    "contain a dict. Got int"):
+            update_with = 9
+            resources.update(alpha_resources=update_with)
 
     def test_parse_q2_data(self):
         resource_filename = self.create_tempfile(suffix='.qza').name
