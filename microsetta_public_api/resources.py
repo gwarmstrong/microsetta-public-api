@@ -1,12 +1,8 @@
 import os
 import pandas as pd
-from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
 from qiime2 import Artifact
 from q2_types.sample_data import AlphaDiversity, SampleData
-from typing import Dict, Any, NewType
-
-_AlphaSampleData = NewType('SampleData[AlphaDiversity]', Any)
 
 
 def _str_str_to_str_alpha(dict_of_qza_paths, resource_name):
@@ -56,18 +52,8 @@ def _replace_paths_with_qza(dict_of_qza_paths, name, semantic_type):
 
 class ResourceManager(dict):
 
-    dict_of_qza_resources = {'alpha_resources': SampleData[AlphaDiversity]}
-
-    resource_formats = {
-        'alpha_resources': (
-            Dict[str, str],
-            Dict[str, _AlphaSampleData],
-        ),
-    }
-
     transformers = {
-        (Dict[str, str],
-         Dict[str, _AlphaSampleData]): _str_str_to_str_alpha,
+        'alpha_resources': _str_str_to_str_alpha,
     }
 
     def update(self, *args, **kwargs):
@@ -106,9 +92,7 @@ class ResourceManager(dict):
             raise TypeError(f'update expected at most 1 positional argument '
                             f'that is a dict. Got {args}')
 
-        for resource_name in self.resource_formats:
-            transformer = self.transformers[
-                self.resource_formats[resource_name]]
+        for resource_name, transformer in self.transformers.items():
             if resource_name in other:
                 new_resource = transformer(other[resource_name],
                                            resource_name)
