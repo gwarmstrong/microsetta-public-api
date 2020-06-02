@@ -8,29 +8,37 @@ from microsetta_public_api.utils.testing import TempfileTestCase
 from microsetta_public_api.resources import ResourceManager, _parse_q2_data
 
 
-class TestResourceManager(TempfileTestCase):
+class TestResourceManagerUpdate(TempfileTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.qza_resource_fp = self.create_tempfile(suffix='.qza').name
+        self.qza_resource_fp2 = self.create_tempfile(suffix='.qza').name
+        self.qza_resource_fh2 = self.create_tempfile(suffix='.qza')
+        self.qza_resource_fh2.close()
+        self.qza_resource_dne = self.qza_resource_fh2.name
+        self.non_qza_resource_fp = self.create_tempfile(
+            suffix='.some_ext').name
+        self.test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
+                                name='chao1')
+        self.test_series2 = pd.Series({'sample1': 7.16, 'sample2': 9.01},
+                                 name='faith_pd')
 
     def test_update(self):
         resources = ResourceManager(some_key='some_value')
 
-        qza_resource_fp = self.create_tempfile(suffix='.qza').name
-        qza_resource_fp2 = self.create_tempfile(suffix='.qza').name
-        test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
-                                name='chao1')
-        test_series2 = pd.Series({'sample1': 7.16, 'sample2': 9.01},
-                                 name='faith_pd')
         imported_artifact = Artifact.import_data(
-            "SampleData[AlphaDiversity]", test_series
+            "SampleData[AlphaDiversity]", self.test_series
         )
-        imported_artifact.save(qza_resource_fp)
+        imported_artifact.save(self.qza_resource_fp)
         imported_artifact = Artifact.import_data(
-            "SampleData[AlphaDiversity]", test_series2
+            "SampleData[AlphaDiversity]", self.test_series2
         )
-        imported_artifact.save(qza_resource_fp2)
+        imported_artifact.save(self.qza_resource_fp2)
 
         update_with = {'random-value': 7.24,
-                       'alpha_resources': {'chao1': qza_resource_fp,
-                                           'faith_pd': qza_resource_fp2,
+                       'alpha_resources': {'chao1': self.qza_resource_fp,
+                                           'faith_pd': self.qza_resource_fp2,
                                            },
                        'other': {'dict': {'of': 'things'}},
                        }
@@ -41,8 +49,8 @@ class TestResourceManager(TempfileTestCase):
                'other': {'dict': {'of': 'things'}},
                }
 
-        exp_alpha_resources = {'chao1': test_series,
-                               'faith_pd': test_series2,
+        exp_alpha_resources = {'chao1': self.test_series,
+                               'faith_pd': self.test_series2,
                                }
         self.assertIn('alpha_resources', resources)
         obs_alpha_resources = resources.pop('alpha_resources')
@@ -57,19 +65,14 @@ class TestResourceManager(TempfileTestCase):
     def test_update_bad_alpha_resources(self):
         resources = ResourceManager(some_key='some_value')
 
-        qza_resource_fp = self.create_tempfile(suffix='.qza').name
-        qza_resource_fh2 = self.create_tempfile(suffix='.qza')
-        qza_resource_fp2 = qza_resource_fh2.name
-        qza_resource_fh2.close()
-        non_qza_resource_fp = self.create_tempfile(suffix='.some_ext').name
         test_series = pd.Series({'sample1': 7.15, 'sample2': 9.04},
                                 name='chao1')
         imported_artifact = Artifact.import_data(
             "SampleData[AlphaDiversity]", test_series
         )
-        imported_artifact.save(qza_resource_fp)
+        imported_artifact.save(self.qza_resource_fp)
         update_with = {'random-value': 7.24,
-                       'alpha_resources': {'chao1': qza_resource_fp,
+                       'alpha_resources': {'chao1': self.qza_resource_fp,
                                            'faith_pd': 9,
                                            },
                        'other': {'dict': {'of': 'things'}},
@@ -80,22 +83,23 @@ class TestResourceManager(TempfileTestCase):
 
         with self.assertRaisesRegex(ValueError,
                                     'Expected existing path with .qza'):
-            update_with['alpha_resources']['faith_pd'] = qza_resource_fp2
+            update_with['alpha_resources']['faith_pd'] = self.qza_resource_dne
             resources.update(update_with)
 
         with self.assertRaisesRegex(ValueError,
                                     'Expected existing path with .qza'):
-            update_with['faith_pd'] = qza_resource_fp2
+            update_with['faith_pd'] = self.qza_resource_dne
             resources.update(alpha_resources=update_with)
 
         with self.assertRaisesRegex(ValueError,
                                     'Expected existing path with .qza'):
-            update_with['alpha_resources']['faith_pd'] = non_qza_resource_fp
+            update_with['alpha_resources']['faith_pd'] = \
+                self.non_qza_resource_fp
             resources.update(update_with)
 
         with self.assertRaisesRegex(ValueError,
                                     'Expected existing path with .qza'):
-            update_with['faith_pd'] = non_qza_resource_fp
+            update_with['faith_pd'] = self.non_qza_resource_fp
             resources.update(alpha_resources=update_with)
 
         with self.assertRaisesRegex(ValueError,
@@ -109,6 +113,9 @@ class TestResourceManager(TempfileTestCase):
                                     "contain a dict. Got int"):
             update_with = 9
             resources.update(alpha_resources=update_with)
+
+
+class TestResourceManagerQ2Parse(TempfileTestCase):
 
     def test_parse_q2_data(self):
         resource_filename = self.create_tempfile(suffix='.qza').name
