@@ -138,15 +138,16 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                                  ['feature-1', 'feature-2', 'feature-3'],
                                  ['sample-1', 'sample-2', 'sample-3'])
 
-        self.table_qza = Artifact.import_data(
+        self.table_artifact = Artifact.import_data(
             "FeatureTable[Frequency]", self.table
         )
-        self.taxonomy_qza = Artifact.import_data(
+        self.taxonomy_artifact = Artifact.import_data(
             "FeatureData[Taxonomy]", self.taxonomy_df,
         )
-        self.table2_qza = Artifact.import_data(
+        self.table2_artifact = Artifact.import_data(
             "FeatureTable[Frequency]", self.table2
         )
+        self.resources = ResourceManager()
 
     def test_(self):
         self.fail()
@@ -164,7 +165,8 @@ class TestResourceManagerQ2Parse(TempfileTestCase):
         imported_artifact.save(resource_filename)
 
         loaded_artifact = _parse_q2_data(resource_filename,
-                                         SampleData[AlphaDiversity])
+                                         SampleData[AlphaDiversity],
+                                         view_type=pd.Series)
         assert_series_equal(test_series, loaded_artifact)
 
     def test_parse_q2_data_wrong_semantic_type(self):
@@ -182,7 +184,8 @@ class TestResourceManagerQ2Parse(TempfileTestCase):
                                     r"Expected (.*) "
                                     r"'SampleData\[AlphaDiversity\]'. "
                                     r"Received 'FeatureData\[Taxonomy\]'."):
-            _parse_q2_data(resource_filename, SampleData[AlphaDiversity])
+            _parse_q2_data(resource_filename, SampleData[AlphaDiversity],
+                           view_type=pd.Series)
 
     def test_parse_q2_data_file_does_not_exist(self):
         resource_file = self.create_tempfile(suffix='.qza')
@@ -191,4 +194,5 @@ class TestResourceManagerQ2Parse(TempfileTestCase):
 
         with self.assertRaisesRegex(ConfigurationError,
                                     r"does not exist"):
-            _parse_q2_data(resource_filename, SampleData[AlphaDiversity])
+            _parse_q2_data(resource_filename, SampleData[AlphaDiversity],
+                           view_type=pd.Series)

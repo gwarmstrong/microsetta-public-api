@@ -10,7 +10,8 @@ def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
     _validate_dict_of_qza_paths(dict_of_qza_paths,
                                 resource_name)
     new_resource = _replace_paths_with_qza(dict_of_qza_paths,
-                                           SampleData[AlphaDiversity])
+                                           SampleData[AlphaDiversity],
+                                           view_type=pd.Series)
     return new_resource
 
 
@@ -43,7 +44,7 @@ def _transform_single_table(dict_, resource_name):
     return new_resource
 
 
-def _parse_q2_data(filepath, semantic_type):
+def _parse_q2_data(filepath, semantic_type, view_type=None):
     try:
         data = Artifact.load(filepath)
     except ValueError as e:
@@ -53,8 +54,10 @@ def _parse_q2_data(filepath, semantic_type):
         raise ConfigurationError(f"Expected QZA '{filepath}' to have type "
                                  f"'{semantic_type}'. "
                                  f"Received '{data.type}'.")
+    if view_type is not None:
+        data = data.view(view_type=view_type)
 
-    return data.view(pd.Series)
+    return data
 
 
 def _validate_dict_of_qza_paths(dict_of_qza_paths, name, allow_none=False,
@@ -90,11 +93,13 @@ def _validate_dict_of_qza_paths(dict_of_qza_paths, name, allow_none=False,
                              'extension. Got: {}'.format(value))
 
 
-def _replace_paths_with_qza(dict_of_qza_paths, semantic_type):
+def _replace_paths_with_qza(dict_of_qza_paths, semantic_type, view_type=None):
     new_resource = dict()
     for key, value in dict_of_qza_paths.items():
         new_resource[key] = _parse_q2_data(value,
-                                           semantic_type)
+                                           semantic_type,
+                                           view_type=view_type,
+                                           )
     return new_resource
 
 
