@@ -1,9 +1,12 @@
 import os
 import pandas as pd
+import biom
 from copy import deepcopy
 from microsetta_public_api.exceptions import ConfigurationError
 from qiime2 import Artifact
 from q2_types.sample_data import AlphaDiversity, SampleData
+from q2_types.feature_table import FeatureTable, Frequency
+from q2_types.feature_data import FeatureData, Taxonomy
 
 
 def _dict_of_paths_to_alpha_data(dict_of_qza_paths, resource_name):
@@ -29,18 +32,26 @@ def _transform_dict_of_table(dict_, resource_name):
 def _transform_single_table(dict_, resource_name):
     _validate_dict_of_qza_paths(dict_, resource_name, allow_none=True,
                                 required_fields=['table'],
-                                non_qza_entries=['table-type']
+                                non_qza_entries=['table-type'],
+                                allow_extras=True,
                                 )
     semantic_types = {
-        'table': dict_.get('table-type', "FeatureTable[Frequency]"),
-        'feature-data-taxonomy': "FeatureData[Taxonomy]",
-        'variances': "FeatureTable[Frequency]",
+        'table': dict_.get('table-type', FeatureTable[Frequency]),
+        'feature-data-taxonomy': FeatureData[Taxonomy],
+        'variances': FeatureTable[Frequency],
+    }
+    views = {
+        'table': biom.Table,
+        'feature-data-taxonomy': pd.DataFrame,
+        'variances': biom.Table,
     }
     new_resource = deepcopy(dict_)
     for key, value in dict_.items():
         if key in semantic_types:
             new_resource[key] = _parse_q2_data(value,
-                                               semantic_types[key])
+                                               semantic_types[key],
+                                               view_type=views.get(key, None),
+                                               )
     return new_resource
 
 
@@ -74,7 +85,8 @@ def _validate_dict_of_qza_paths(dict_of_qza_paths, name, allow_none=False,
             if field not in dict_of_qza_paths:
                 raise ValueError(f"Did not get required field '{field}'.")
         if not allow_extras:
-            extra_keys = list(filter(lambda x: x in set(required_fields),
+            allowed_keys = set(required_fields) | set(non_qza_entries)
+            extra_keys = list(filter(lambda x: x not in allowed_keys,
                                      dict_of_qza_paths.keys()))
             if extra_keys:
                 raise ValueError(f"Extra keys: {extra_keys} not allowed.")
@@ -145,7 +157,7 @@ class ResourceManager(dict):
         ...         'some_other_feature_table': {
         ...             'table': '/another/path/tofeature-table.qza',
         ...             'variances': '/a/variance/feature-table.qza',
-        ...             'table-type': 'FeatureTable[Compositional]'
+        ...             'table-type': FeatureTable[Frequency],
         ...         },
         ...     }
         ...     some_other_resource='here is a string resource',

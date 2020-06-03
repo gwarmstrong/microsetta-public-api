@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 import biom
-from pandas.util.testing import assert_series_equal
+from pandas.util.testing import assert_series_equal, assert_frame_equal
 from qiime2 import Artifact
 from q2_types.sample_data import SampleData, AlphaDiversity
+from q2_types.feature_table import FeatureTable, Frequency
 
 from microsetta_public_api.exceptions import ConfigurationError
 from microsetta_public_api.utils.testing import TempfileTestCase
@@ -147,10 +148,136 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         self.table2_artifact = Artifact.import_data(
             "FeatureTable[Frequency]", self.table2
         )
+        self.table_qza = self.create_tempfile(suffix='.qza').name
+        self.table_artifact.save(self.table_qza)
+        self.taxonomy_qza = self.create_tempfile(suffix='.qza').name
+        self.taxonomy_artifact.save(self.taxonomy_qza)
+        self.table2_qza = self.create_tempfile(suffix='.qza').name
+        self.table2_artifact.save(self.table2_qza)
         self.resources = ResourceManager()
+        self.config = {'table_resources': {
+            'simple-table': {
+                'table': self.table_qza,
+                'table-type': FeatureTable[Frequency]
+            },
+            'second-simple-table': {
+                'table': self.table2_qza,
+            },
+            'table-with-taxonomy': {
+                'table': self.table_qza,
+                'feature-data-taxonomy': self.taxonomy_qza,
+            },
+            'table-with-variance': {
+                'table': self.table_qza,
+                'variances': self.table2_qza,
+            },
+            'table-with-taxonomy-and-variance': {
+                'table': self.table_qza,
+                'feature-data-taxonomy': self.taxonomy_qza,
+                'variances': self.table2_qza,
+            },
+        }}
 
-    def test_(self):
-        self.fail()
+    def test_simple_table(self):
+        subset_table = 'simple-table'
+        config = {'table_resources': {
+            subset_table: self.config['table_resources'][subset_table]}}
+        self.resources.update(config)
+        self.assertListEqual(list(self.resources['table_resources']),
+                             ['simple-table'])
+        new_table_config = self.resources['table_resources']['simple-table']
+        self.assertIn('table',
+                      new_table_config)
+        exp_table = self.table
+        obs_table = new_table_config['table']
+
+        assert_frame_equal(exp_table.to_dataframe(), obs_table.to_dataframe())
+
+    def test_two_tables(self):
+        config = {'table_resources': {
+            'table1': self.config['table_resources']['simple-table'],
+            'table2': self.config['table_resources']['second-simple-table'],
+        }}
+        self.resources.update(config)
+        new_table_config = self.resources['table_resources']
+        self.assertCountEqual(list(self.resources['table_resources']),
+                              ['table1', 'table2'])
+        exp_table = self.table
+        obs_table = new_table_config['table1']['table']
+        assert_frame_equal(exp_table.to_dataframe(),
+                           obs_table.to_dataframe())
+        exp_table = self.table2
+        obs_table = new_table_config['table2']['table']
+        assert_frame_equal(exp_table.to_dataframe(),
+                           obs_table.to_dataframe())
+
+    def test_table_with_taxonomy(self):
+        subset_table = 'table-with-taxonomy'
+        config = {'table_resources': {
+            subset_table: self.config['table_resources'][subset_table]}}
+        self.resources.update(config)
+        self.assertListEqual(list(self.resources['table_resources']),
+                             [subset_table])
+        new_table_config = self.resources['table_resources'][
+            subset_table]
+        self.assertCountEqual(['table', 'feature-data-taxonomy'],
+                              new_table_config.keys())
+
+        exp_table = self.table
+        obs_table = new_table_config['table']
+        assert_frame_equal(exp_table.to_dataframe(),
+                           obs_table.to_dataframe())
+
+        exp_tax = self.taxonomy_df
+        obs_tax = new_table_config['feature-data-taxonomy']
+        obs_tax['Confidence'] = obs_tax['Confidence'].astype('float')
+        assert_frame_equal(exp_tax, obs_tax)
+
+    def test_table_with_variance(self):
+        subset_table = 'table-with-variance'
+        config = {'table_resources': {
+            subset_table: self.config['table_resources'][subset_table]}}
+        self.resources.update(config)
+        self.assertListEqual(list(self.resources['table_resources']),
+                             [subset_table])
+        new_table_config = self.resources['table_resources'][
+            subset_table]
+        self.assertCountEqual(['table', 'variances'],
+                              new_table_config.keys())
+
+        exp_table = self.table
+        obs_table = new_table_config['table']
+        assert_frame_equal(exp_table.to_dataframe(),
+                           obs_table.to_dataframe())
+        exp_var = self.table2
+        obs_var = new_table_config['variances']
+        assert_frame_equal(exp_var.to_dataframe(),
+                           obs_var.to_dataframe())
+
+    def test_table_with_taxonomy_and_variance(self):
+        subset_table = 'table-with-taxonomy-and-variance'
+        config = {'table_resources': {
+            subset_table: self.config['table_resources'][subset_table]}}
+        self.resources.update(config)
+        self.assertListEqual(list(self.resources['table_resources']),
+                             [subset_table])
+        new_table_config = self.resources['table_resources'][
+            subset_table]
+        self.assertCountEqual(['table', 'variances', 'feature-data-taxonomy'],
+                              new_table_config.keys())
+
+        exp_table = self.table
+        obs_table = new_table_config['table']
+        assert_frame_equal(exp_table.to_dataframe(),
+                           obs_table.to_dataframe())
+        exp_var = self.table2
+        obs_var = new_table_config['variances']
+        assert_frame_equal(exp_var.to_dataframe(),
+                           obs_var.to_dataframe())
+        exp_tax = self.taxonomy_df
+        obs_tax = new_table_config['feature-data-taxonomy']
+        obs_tax['Confidence'] = obs_tax['Confidence'].astype('float')
+        assert_frame_equal(exp_tax, obs_tax)
 
 
 class TestResourceManagerQ2Parse(TempfileTestCase):
