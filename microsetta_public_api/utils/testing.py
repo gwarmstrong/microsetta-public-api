@@ -7,7 +7,6 @@ from unittest.case import TestCase
 import microsetta_public_api
 import microsetta_public_api.server
 import microsetta_public_api.utils._utils
-from microsetta_public_api.api.diversity import alpha as alpha_imp
 
 
 class TempfileTestCase(TestCase):
