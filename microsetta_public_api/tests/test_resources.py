@@ -191,7 +191,8 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         exp_table = self.table
         obs_table = new_table_config['table']
 
-        assert_frame_equal(exp_table.to_dataframe(dense=True), obs_table.to_dataframe(dense=True))
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
 
     def test_two_tables(self):
         config = {'table_resources': {
