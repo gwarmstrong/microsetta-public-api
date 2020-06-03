@@ -191,7 +191,7 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
         exp_table = self.table
         obs_table = new_table_config['table']
 
-        assert_frame_equal(exp_table.to_dataframe(), obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True), obs_table.to_dataframe(dense=True))
 
     def test_two_tables(self):
         config = {'table_resources': {
@@ -204,12 +204,12 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
                               ['table1', 'table2'])
         exp_table = self.table
         obs_table = new_table_config['table1']['table']
-        assert_frame_equal(exp_table.to_dataframe(),
-                           obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
         exp_table = self.table2
         obs_table = new_table_config['table2']['table']
-        assert_frame_equal(exp_table.to_dataframe(),
-                           obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
 
     def test_table_with_taxonomy(self):
         subset_table = 'table-with-taxonomy'
@@ -225,8 +225,8 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
 
         exp_table = self.table
         obs_table = new_table_config['table']
-        assert_frame_equal(exp_table.to_dataframe(),
-                           obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
 
         exp_tax = self.taxonomy_df
         obs_tax = new_table_config['feature-data-taxonomy']
@@ -247,12 +247,12 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
 
         exp_table = self.table
         obs_table = new_table_config['table']
-        assert_frame_equal(exp_table.to_dataframe(),
-                           obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
         exp_var = self.table2
         obs_var = new_table_config['variances']
-        assert_frame_equal(exp_var.to_dataframe(),
-                           obs_var.to_dataframe())
+        assert_frame_equal(exp_var.to_dataframe(dense=True),
+                           obs_var.to_dataframe(dense=True))
 
     def test_table_with_taxonomy_and_variance(self):
         subset_table = 'table-with-taxonomy-and-variance'
@@ -268,12 +268,12 @@ class TestResourceManagerUpdateTables(TempfileTestCase):
 
         exp_table = self.table
         obs_table = new_table_config['table']
-        assert_frame_equal(exp_table.to_dataframe(),
-                           obs_table.to_dataframe())
+        assert_frame_equal(exp_table.to_dataframe(dense=True),
+                           obs_table.to_dataframe(dense=True))
         exp_var = self.table2
         obs_var = new_table_config['variances']
-        assert_frame_equal(exp_var.to_dataframe(),
-                           obs_var.to_dataframe())
+        assert_frame_equal(exp_var.to_dataframe(dense=True),
+                           obs_var.to_dataframe(dense=True))
         exp_tax = self.taxonomy_df
         obs_tax = new_table_config['feature-data-taxonomy']
         obs_tax['Confidence'] = obs_tax['Confidence'].astype('float')
