@@ -1,6 +1,3 @@
-from microsetta_public_api.resources import resources
-
-
 class MetadataRepo:
 
     def __init__(self):
