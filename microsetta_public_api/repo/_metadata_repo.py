@@ -1,8 +1,5 @@
 class MetadataRepo:
 
-    def __init__(self):
-        raise NotImplementedError()
-
     @property
     def metadata(self):
         raise NotImplementedError()
