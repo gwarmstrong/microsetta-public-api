@@ -1,6 +1,5 @@
 import pandas as pd
 from microsetta_public_api import config
-from microsetta_public_api.resources import resources
 from microsetta_public_api.utils.testing import (TempfileTestCase,
                                                  ConfigTestCase)
 from microsetta_public_api.repo._metadata_repo import MetadataRepo
