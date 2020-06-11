@@ -9,10 +9,7 @@ from microsetta_public_api.api.metadata import (category_values,
 
 class MetadataImplementationTests(MockedJsonifyTestCase):
 
-    jsonify_to_patch = [
-        'microsetta_public_api.api.metadata.jsonify',
-        'microsetta_public_api.utils._utils.jsonify',
-    ]
+    jsonify_to_patch = 'microsetta_public_api.api.metadata.jsonify'
 
     def test_metadata_category_values(self):
         with patch('microsetta_public_api.repo._metadata_repo.MetadataRepo.'
@@ -45,7 +42,7 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
             mock_matches.return_value = ['sample-1', 'sample-3']
             response, code = filter_sample_ids(age_cat='30s')
         self.assertEqual(code, 200)
-        exp = {'sample_ids': ['sample-1', 'sample-2']}
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
 
@@ -54,7 +51,7 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
             mock_matches.return_value = ['sample-1', 'sample-3']
             response, code = filter_sample_ids(bmi='normal')
         self.assertEqual(code, 200)
-        exp = {'sample_ids': ['sample-1', 'sample-2']}
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
 
@@ -63,7 +60,7 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
             mock_matches.return_value = ['sample-1', 'sample-3']
             response, code = filter_sample_ids(bmi='normal', age_cat='30s')
         self.assertEqual(code, 200)
-        exp = {'sample_ids': ['sample-1', 'sample-2']}
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
 
@@ -72,6 +69,6 @@ class MetadataImplementationTests(MockedJsonifyTestCase):
             mock_matches.return_value = ['sample-1', 'sample-3']
             response, code = filter_sample_ids(some_other_cat='bar')
         self.assertEqual(code, 200)
-        exp = {'sample_ids': ['sample-1', 'sample-2']}
+        exp = {'sample_ids': ['sample-1', 'sample-3']}
         obs = json.loads(response)
         self.assertDictEqual(exp, obs)
