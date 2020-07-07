@@ -2,6 +2,7 @@ import json
 from pkg_resources import resource_filename
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
+from flask import render_template
 
 import connexion
 
@@ -22,6 +23,10 @@ def build_app(resources_config_json=None):
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
     app.add_api(app_file, validate_responses=True)
+
+    @app.route('/demos/data-table')
+    def data_table_demo():
+        return render_template('data-table.html')
 
     return app
 
