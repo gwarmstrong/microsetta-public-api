@@ -6,34 +6,55 @@
   <title>Microsetta Public API Taxonomy Table Demo</title>
   <meta name="description" content="Microsetta Public API Taxonomy Table Demo">
   <meta name="author" content="George Armstrong">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
-  <script type="text/javascript" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
   <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css" />
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
 </head>
 
 <body>
   <script>
     $(document).ready(function() {
       $('#example').DataTable( {
-          ajax: "data/orthogonal.txt",
+          ajax: {
+              url: "/api/taxonomy/present/group/greengenes",
+              type: "POST",
+              data: function (d) {
+                  return JSON.stringify({
+                      sample_ids: ["sample-1", "sample-3", "sample-177"]
+                  })
+              },
+              contentType: "application/json",
+          },
           columns: [
-              { data: "SampleID" },
-              { data: "Kingdom" },
+              { data: "sampleId" },
               { data: "relativeAbundance" },
+              { data: "Kingdom" },
+              { data: "Phylum" },
+              { data: "Class" },
+              { data: "Order" },
+              { data: "Family" },
+              { data: "Genus" },
           ]
       } );
     } );
 
   </script>
-
-  <table id="example" class="display" style="width:100%">
-    <thead>
-      <tr>
-        <th>Sample ID</th>
-        <th>Kingdom</th>
-        <th>Relative Abundance</th>
-      </tr>
-    </thead>
-  </table>
+  <div style="padding:10px">
+    <table id="example" class="display" style="width:100%">
+      <thead>
+        <tr>
+          <th>Sample ID</th>
+          <th>Relative Abundance</th>
+          <th>Kingdom</th>
+          <th>Phylum</th>
+          <th>Class</th>
+          <th>Order</th>
+          <th>Family</th>
+          <th>Genus</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
 </body>
 </html>
