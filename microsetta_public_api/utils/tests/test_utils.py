@@ -1,6 +1,5 @@
 from unittest.case import TestCase
 
-from microsetta_public_api.utils.testing import mocked_jsonify
 from microsetta_public_api.utils import DataTable, create_data_entry
 import json
 import pandas as pd
@@ -24,9 +23,11 @@ class TestDatabaseTests(TestCase):
         with TestDatabase():
             self.assertIn('metadata', resources)
             self.assertIn('alpha_resources', resources)
+            self.assertIn('table_resources', resources)
 
         self.assertNotIn('metadata', resources)
         self.assertNotIn('alpha_resources', resources)
+        self.assertNotIn('table_resources', resources)
 
 
 class TestDataTable(TestCase):
