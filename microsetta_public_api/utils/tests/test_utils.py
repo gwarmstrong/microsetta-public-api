@@ -4,6 +4,8 @@ from microsetta_public_api.utils.testing import mocked_jsonify
 from microsetta_public_api.utils import DataTable, create_data_entry
 import json
 import pandas as pd
+from microsetta_public_api.utils.testing import mocked_jsonify, TestDatabase
+from microsetta_public_api.resources import resources
 
 
 class MockedJsonifyTests(TestCase):
@@ -14,6 +16,17 @@ class MockedJsonifyTests(TestCase):
         mocked_jsonify('a', 'b', 'c')
         with self.assertRaises(TypeError):
             mocked_jsonify({'a': 'b', 'c': 'd'}, e='f')
+
+
+class TestDatabaseTests(TestCase):
+
+    def test_basic_test_db(self):
+        with TestDatabase():
+            self.assertIn('metadata', resources)
+            self.assertIn('alpha_resources', resources)
+
+        self.assertNotIn('metadata', resources)
+        self.assertNotIn('alpha_resources', resources)
 
 
 class TestDataTable(TestCase):
