@@ -6,42 +6,153 @@
   <title>Microsetta Public API Taxonomy Table Demo</title>
   <meta name="description" content="Microsetta Public API Taxonomy Table Demo">
   <meta name="author" content="George Armstrong">
-  <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+
+
   <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.css" />
+  <link rel="stylesheet" type="text/css" href="https://querybuilder.js.org/assets/css/docs.min.css">
+  <link rel="stylesheet" type="text/css" href="https://querybuilder.js.org/assets/css/style.css">
+
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jQuery-QueryBuilder/dist/js/query-builder.standalone.min.js"></script>
+
   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.js"></script>
+
 </head>
 
 <body>
   <script>
-    $(document).ready(function() {
-      $('#example').DataTable( {
-          ajax: {
-              url: "/api/taxonomy/present/group/greengenes",
-              type: "POST",
-              data: function (d) {
-                  return JSON.stringify({
-                      sample_ids: ["sample-1", "sample-3", "sample-177"]
-                  })
-              },
-              contentType: "application/json",
-          },
-          columns: [
-              { data: "sampleId" },
-              { data: "relativeAbundance" },
-              { data: "Kingdom" },
-              { data: "Phylum" },
-              { data: "Class" },
-              { data: "Order" },
-              { data: "Family" },
-              { data: "Genus" },
-          ]
-      } );
-    } );
 
   </script>
-  <div style="padding:10px">
-    <table id="example" class="display" style="width:100%">
+  <div>
+    <div id="builder-basic" class="query-builder form-inline">
+    </div>
+    <div class="btn-group" style="padding:10px">
+      <button class="btn btn-primary parse-json" data-target="basic" id="btn-get">Get rules</button>
+    </div>
+  </div>
+  <script>
+      var rules_basic = {
+          condition: 'AND',
+          rules: [{
+              id: 'bmi_cat',
+              operator: 'equal',
+              value: 'Normal'
+          }, {
+              condition: 'OR',
+              rules: [{
+                  id: 'age_cat',
+                  operator: 'equal',
+                  value: '30s'
+              }, {
+                  id: 'age_cat',
+                  operator: 'equal',
+                  value: '40s'
+              }]
+          }]
+      };
+
+      $('#builder-basic').queryBuilder({
+          plugins: ['bt-tooltip-errors'],
+
+          filters: [{
+              id: 'age_cat',
+              label: 'Age',
+              type: 'string',
+              input: 'select',
+              values: [
+                  '30s',
+                  '40s',
+                  '50s'
+              ],
+              operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
+          }, {
+              id: 'bmi_cat',
+              label: 'BMI',
+              type: 'string',
+              input: 'select',
+              values: [
+                  'Normal',
+                  'Overweight',
+                  'Obese'
+              ],
+              operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
+          }],
+
+          rules: rules_basic
+      });
+
+      var current_samples;
+
+      $('#btn-get').on('click', function() {
+        var result = $('#builder-basic').queryBuilder('getRules');
+
+        if (!$.isEmptyObject(result)) {
+            $.ajax({
+              url: '/api/metadata/sample_ids',
+              data: JSON.stringify($('#builder-basic').queryBuilder('getRules')),
+              contentType: "application/json",
+              type: "POST",
+              success: function(data) {
+                $('#example').DataTable( {
+                    destroy: true,
+                    ajax: {
+                        url: "/api/taxonomy/present/group/greengenes",
+                        type: "POST",
+                        data: function () {
+                            return JSON.stringify(
+                                data
+                            )
+                        },
+                        contentType: "application/json",
+                    },
+                    columns: [
+                        { data: "sampleId" },
+                        { data: "relativeAbundance" },
+                        { data: "Kingdom" },
+                        { data: "Phylum" },
+                        { data: "Class" },
+                        { data: "Order" },
+                        { data: "Family" },
+                        { data: "Genus" },
+                    ]
+                } );
+                alert(JSON.stringify(data, null, 2));
+              }
+            });
+          // alert(JSON.stringify(result, null, 2));
+        }
+      });
+
+      $(document).ready(function() {
+          $('#example').DataTable( {
+              ajax: {
+                  url: "/api/taxonomy/present/group/greengenes",
+                  type: "POST",
+                  data: function () {
+                      return JSON.stringify({
+                          sample_ids: []
+                      })
+                  },
+                  contentType: "application/json",
+              },
+              columns: [
+                  { data: "sampleId" },
+                  { data: "relativeAbundance" },
+                  { data: "Kingdom" },
+                  { data: "Phylum" },
+                  { data: "Class" },
+                  { data: "Order" },
+                  { data: "Family" },
+                  { data: "Genus" },
+              ]
+          } );
+      } );
+
+  </script>
+  <div>
+    <table id="example" class="display" style="width:100%; padding:10px">
       <thead>
         <tr>
           <th>Sample ID</th>
