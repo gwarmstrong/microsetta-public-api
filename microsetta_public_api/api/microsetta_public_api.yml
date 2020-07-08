@@ -75,6 +75,41 @@ paths:
         '404':
           $ref: '#/components/responses/404NotFound'
 
+    post:
+      operationId: microsetta_public_api.api.metadata.filter_sample_ids_query_builder
+      tags:
+        - Metadata
+      summary: Get samples associated with query
+      description: Get samples associated with query
+      parameters:
+        - in: query
+          name: taxonomy
+          description: Filter IDs to those present in the table associated with `taxonomy`
+          schema:
+            type: string
+            example: 'genus-level-taxonomy'
+        - in: query
+          name: alpha_metric
+          description: Filter IDs to those present in the data for `alpha_metric`
+          schema:
+            $ref: '#/components/schemas/alphaMetric'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: True
+
+      responses:
+        '200':
+          description: Successfully returned sample ids
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/sampleIdList"
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
 
   '/diversity/alpha/metrics/available':
     get:
