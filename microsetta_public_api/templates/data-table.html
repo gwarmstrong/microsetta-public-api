@@ -31,32 +31,14 @@
 
   </script>
   <div>
-    <div id="builder-basic" class="query-builder form-inline">
+    <div id="builder-basic" class="query-builder form-inline" style="padding:10px">
     </div>
     <div class="btn-group" style="padding:10px">
-      <button class="btn btn-primary parse-json" data-target="basic" id="btn-get">Get rules</button>
+      <button class="btn btn-primary parse-json" data-target="basic" id="btn-get">Get taxa</button>
     </div>
   </div>
   <script>
-      var rules_basic = {
-          condition: 'AND',
-          rules: [{
-              id: 'bmi_cat',
-              operator: 'equal',
-              value: 'Normal'
-          }, {
-              condition: 'OR',
-              rules: [{
-                  id: 'age_cat',
-                  operator: 'equal',
-                  value: '30s'
-              }, {
-                  id: 'age_cat',
-                  operator: 'equal',
-                  value: '40s'
-              }]
-          }]
-      };
+      var taxonomy = "ag-genus"
 
       $('#builder-basic').queryBuilder({
           plugins: ['bt-tooltip-errors'],
@@ -85,17 +67,14 @@
               operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
           }],
 
-          rules: rules_basic
       });
-
-      var current_samples;
 
       $('#btn-get').on('click', function() {
         var result = $('#builder-basic').queryBuilder('getRules');
 
         if (!$.isEmptyObject(result)) {
             $.ajax({
-              url: '/api/metadata/sample_ids',
+              url: '/api/metadata/sample_ids?taxonomy=' + taxonomy,
               data: JSON.stringify($('#builder-basic').queryBuilder('getRules')),
               contentType: "application/json",
               type: "POST",
@@ -103,7 +82,7 @@
                 $('#example').DataTable( {
                     destroy: true,
                     ajax: {
-                        url: "/api/taxonomy/present/group/greengenes",
+                        url: "/api/taxonomy/present/group/" + taxonomy,
                         type: "POST",
                         data: function () {
                             return JSON.stringify(
@@ -123,7 +102,7 @@
                         { data: "Genus" },
                     ]
                 } );
-                alert(JSON.stringify(data, null, 2));
+                // alert(JSON.stringify(data, null, 2));
               }
             });
           // alert(JSON.stringify(result, null, 2));
@@ -133,7 +112,7 @@
       $(document).ready(function() {
           $('#example').DataTable( {
               ajax: {
-                  url: "/api/taxonomy/present/group/greengenes",
+                  url: "/api/taxonomy/present/group/" + taxonomy,
                   type: "POST",
                   data: function () {
                       return JSON.stringify({
@@ -156,8 +135,8 @@
       } );
 
   </script>
-  <div>
-    <table id="example" class="display" style="width:100%; padding:10px">
+  <div style="padding:10px">
+    <table id="example" class="display" style="width:100%">
       <thead>
         <tr>
           <th>Sample ID</th>
