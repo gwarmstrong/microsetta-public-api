@@ -97,9 +97,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: True
-
+              $ref: '#/components/schemas/metadataQuery'
 
       responses:
         '200':
@@ -142,6 +140,41 @@ paths:
           name: sample_id
           schema:
             $ref: '#/components/schemas/sampleId'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+    post:
+      operationId: microsetta_public_api.api.plotting.plot_alpha_filtered_json_query
+      tags:
+        - Plotting
+        - Diversity
+      summary: Get a Vega schema for alpha diversity cdf matching criteria
+      description: Get a Vega schema for alpha diversity cdf matching criteria
+      parameters:
+        - in: path
+          name: alpha_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/alphaMetric'
+          required: true
+        - in: query
+          $ref: '#/components/parameters/percentiles'
+        - in: query
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/metadataQuery'
       responses:
         '200':
           description: Successfully returned Vega JSON
@@ -494,6 +527,10 @@ components:
     alphaMetric:
       type: string
       example: "faith_pd"
+    metadataQuery:
+      # TODO try to make this a little more informative (challenging due to recursive definition)
+      type: object
+      additionalProperties: true
     percentiles:
       type: array
       items:
