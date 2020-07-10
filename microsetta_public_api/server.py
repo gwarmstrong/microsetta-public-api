@@ -43,4 +43,3 @@ if __name__ == "__main__":
         with TestDatabase():
             app = build_app()
             app.run(port=8083, debug=True)
-
