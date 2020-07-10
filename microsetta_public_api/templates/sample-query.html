@@ -1,0 +1,30 @@
+<script>
+    $('#builder-basic').queryBuilder({
+        plugins: ['bt-tooltip-errors'],
+
+        filters: [{
+            id: 'age_cat',
+            label: 'Age',
+            type: 'string',
+            input: 'select',
+            values: [
+                '30s',
+                '40s',
+                '50s'
+            ],
+            operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
+        }, {
+            id: 'bmi_cat',
+            label: 'BMI',
+            type: 'string',
+            input: 'select',
+            values: [
+                'Normal',
+                'Overweight',
+                'Obese'
+            ],
+            operators: ['equal', 'not_equal', 'in', 'not_in', 'is_null', 'is_not_null']
+        }],
+
+    });
+</script>
