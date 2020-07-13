@@ -134,7 +134,8 @@ class Taxonomy(ModelBase):
         # This may cause errors later if there rows or columns that are empty
         self._features = self._features.loc[self._feature_order]
         self._rarity = 1 / self._table.nonzero_counts('observation')
-        self._average = self._table.sum('observation') / len(self._features)
+        self._average = self._table.sum('observation') / len(
+            self._table.ids(axis='sample'))
 
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
@@ -225,14 +226,14 @@ class Taxonomy(ModelBase):
                              )
 
     def presence_data_table(self, ids: Iterable[str]) -> DataTable:
-        table = self._table.filter(set(ids), inplace=False).remove_empty()
+        table = self._table.filter(set(ids), inplace=False)  # .remove_empty()
         features = table.ids(axis='observation')
 
         entries = list()
         for vec, sample_id, _ in table.iter(dense=False):
             for feature_idx, val in zip(vec.indices, vec.data):
                 rarity = self._rarity[feature_idx]
-                enrichment = val / self._average
+                enrichment = val / self._average[feature_idx]
                 entry = {
                     'sampleId': sample_id,
                     'relativeAbundance': val,
@@ -247,7 +248,8 @@ class Taxonomy(ModelBase):
                                    columns=
                                    ['sampleId'] +
                                    self._formatter.labels +
-                                   ['relativeAbundance'],
+                                   ['relativeAbundance', 'rarity',
+                                    'enrichment'],
                                    # need the .astype('object') in case a
                                    # column is completely empty (filled with
                                    # Nan, default dtype is numeric,
