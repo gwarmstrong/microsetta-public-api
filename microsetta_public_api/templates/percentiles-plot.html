@@ -1,78 +1,50 @@
 {% extends "demos.html" %}
 {% block content %}
-    <script type="text/javascript">
-        var server = "http://localhost:8083";
-        var opt = {"renderer": "canvas", "actions": true};  /* Options for the Vega embedding */
-        var metric = "faith-pd";
-
-        function addSortedMetadataCategories(category, picker) {
-            $.getJSON(server + "/api/metadata/category/values/" + category,
-                function(data) {
-                  data.sort();
-                  for (let idx in data) {
-                      $(picker).append('<option value=' + data[idx] + '>' + data[idx] + '</option>');
-                  }
-                }
-            );
-        }
-
-        function formatQuery(categories) {
-            let base = server + "/api/plotting/diversity/alpha/" + metric +
-                '/percentiles-plot';
-            let query = [];
-            for (let [request_key, category] of Object.entries(categories)) {
-                if (category !== "") {
-                    query.push(request_key + '=' + category);
-                }
-            }
-            if (query.length !== 0){
-                base = base + '?' + query.join('&');
-            }
-            return base;
-        }
-
-        function plotQuery() {
-            $.getJSON(
-                formatQuery({
-                    age_cat: $('#ageCategories').val(),
-                    bmi_cat: $('#bmiCategories').val(),
-                    sample_id: $('#sampleId').val()
-                }),
-                function (json) {
-                    vegaEmbed("#vis", json, opt);
-                }
-            );
-        }
-
-        addSortedMetadataCategories('age_cat', '#ageCategories');
-        addSortedMetadataCategories('bmi_cat', '#bmiCategories');
-
-    </script>
+  <div>
     <div id="frame" style="margin: 20px">
-      <div class="form-row">
-        <label for="ageCategories"> Age Category </label>
-        <select class="selectpicker" id="ageCategories">
-          <option value=""> Any </option>
-        </select>
+      <div id="builder-basic" class="query-builder form-inline" style="padding:10px">
       </div>
-
-      <div class="form-row">
-        <label for="bmiCategories"> BMI Category </label>
-        <select class="selectpicker" id="bmiCategories">
-          <option value=""> Any </option>
-        </select>
-      </div>
-
-      <div class="form-row">
+      <div class="form-row" style="padding:10px">
         <label for="sampleId"> Sample ID </label>
         <input class="form-control" id="sampleId" placeholder="Enter sample ID">
       </div>
-
-      <div class="form-row" style="margin-block:10px">
-        <button onclick="plotQuery()"> Recalculate </button>
+      <div class="btn-group" style="padding:10px">
+        <button class="btn btn-primary parse-json" data-target="basic" id="btn-get">Get alpha</button>
       </div>
-
-      <div id="vis"></div>
-
     </div>
+    <div id="vis"></div>
+  </div>
+  {% include "sample-query.html" %}
+    <script>
+      var taxonomy = "greengenes";
+      var opt = {"renderer": "canvas", "actions": true};  /* Options for the Vega embedding */
+      var metric = "faith-pd";
+
+      function formatSampleURL() {
+          let base = '/api/plotting/diversity/alpha/' + metric + '/percentiles-plot';
+          let sampleId = $('#sampleId').val();
+          if (sampleId !== "") {
+              base = base + '?sample_id=' + sampleId;
+          }
+          return base;
+      }
+
+      $('#btn-get').on('click', function() {
+          var result = $('#builder-basic').queryBuilder('getRules');
+
+          if (!$.isEmptyObject(result)) {
+              $.ajax({
+                  url: formatSampleURL(),
+                  data: JSON.stringify($('#builder-basic').queryBuilder('getRules')),
+                  contentType: "application/json",
+                  type: "POST",
+                  success: fillDataTable
+              });
+          }
+      });
+
+      function fillDataTable(data) {
+        vegaEmbed("#vis", data, opt);
+      }
+    </script>
 {% endblock %}
