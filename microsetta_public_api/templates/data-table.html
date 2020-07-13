@@ -1,8 +1,11 @@
 {% extends "demos.html" %}
 {% block content %}
-  <script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.2/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.flash.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.html5.min.js"></script>
+<script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.2/js/buttons.print.min.js"></script>
 
-  </script>
   <div>
     <div id="builder-basic" class="query-builder form-inline" style="padding:10px">
     </div>
@@ -22,59 +25,84 @@
               data: JSON.stringify($('#builder-basic').queryBuilder('getRules')),
               contentType: "application/json",
               type: "POST",
-              success: function(data) {
-                $('#example').DataTable( {
-                    destroy: true,
-                    ajax: {
-                        url: "/api/taxonomy/present/group/" + taxonomy,
-                        type: "POST",
-                        data: function () {
-                            return JSON.stringify(
-                                data
-                            )
+              success:
+                  function(data) {
+                    $('#example').DataTable( {
+                        destroy: true,
+                        dom: 'Bfrtip',
+                        buttons: [
+                          'copy', 'csv', 'excel', 'pdf', 'print'
+                        ],
+                        ajax: {
+                            url: "/api/taxonomy/present/group/" + taxonomy,
+                            type: "POST",
+                            data: stringify_fn(data),
+                            // data: createDataTable(stringify_fn(data)),
+                            contentType: "application/json",
                         },
-                        contentType: "application/json",
-                    },
-                    columns: [
-                        { data: "sampleId" },
-                        { data: "relativeAbundance" },
-                        { data: "Kingdom" },
-                        { data: "Phylum" },
-                        { data: "Class" },
-                        { data: "Order" },
-                        { data: "Family" },
-                        { data: "Genus" },
-                    ]
-                } );
+                        columns: [
+                            { data: "sampleId" },
+                            { data: "relativeAbundance" },
+                            { data: "Kingdom" },
+                            { data: "Phylum" },
+                            { data: "Class" },
+                            { data: "Order" },
+                            { data: "Family" },
+                            { data: "Genus" },
+                        ]
+                    } );
               }
             });
         }
       });
 
-      $(document).ready(function() {
-          $('#example').DataTable( {
-              ajax: {
-                  url: "/api/taxonomy/present/group/" + taxonomy,
-                  type: "POST",
-                  data: function () {
-                      return JSON.stringify({
-                          sample_ids: []
-                      })
-                  },
-                  contentType: "application/json",
-              },
-              columns: [
-                  { data: "sampleId" },
-                  { data: "relativeAbundance" },
-                  { data: "Kingdom" },
-                  { data: "Phylum" },
-                  { data: "Class" },
-                  { data: "Order" },
-                  { data: "Family" },
-                  { data: "Genus" },
-              ]
-          } );
-      } );
+      function stringify_fn(data) {
+          return function() {
+              return JSON.stringify(
+                  data
+              )
+          }
+      }
+
+      function nullDataTable(data) {
+          return JSON.stringify({
+              sample_ids: []
+          })
+      }
+
+      function filledDataTable(data) {
+          return JSON.stringify(data)
+      }
+
+      function createDataTable(createFn) {
+        return function() {
+            $('#example').DataTable({
+                ajax: {
+                    url: "/api/taxonomy/present/group/" + taxonomy,
+                    type: "POST",
+                    data: createFn,
+                    contentType: "application/json",
+                },
+                buttons: [
+                    'copy', 'csv', 'excel', 'pdf', 'print'
+                ],
+                columns: [
+                    {data: "sampleId"},
+                    {data: "relativeAbundance"},
+                    {data: "Kingdom"},
+                    {data: "Phylum"},
+                    {data: "Class"},
+                    {data: "Order"},
+                    {data: "Family"},
+                    {data: "Genus"},
+                ]
+            });
+        }
+      }
+
+      $(document).ready(
+          createDataTable(nullDataTable)
+      );
 
   </script>
   <div style="padding:10px">
