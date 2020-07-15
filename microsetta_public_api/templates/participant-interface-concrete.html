@@ -1,0 +1,166 @@
+{% extends "demos.html" %}
+{% block head %}
+  {{ super() }}
+  <meta id="sampleId" data-sampleid="{{sample_id}}">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+  * {
+    box-sizing: border-box;
+  }
+
+  /* Container for flexboxes */
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  /* Create four equal columns */
+  .column {
+    flex: 25%;
+    padding: 20px;
+  }
+
+  /* On screens that are 992px wide or less, go from four columns to two columns */
+  @media screen and (max-width: 992px) {
+    .column {
+      flex: 50%;
+    }
+  }
+
+  /* On screens that are 600px wide or less, make the columns stack on top of each other instead of next to each other */
+  @media screen and (max-width: 600px) {
+    .row {
+      flex-direction: column;
+    }
+  }
+  </style>
+
+{% endblock head %}
+
+{% block content %}
+<script>
+    let taxonomy = "ag-genus";
+    let metric = "faith-pd";
+    let sampleId = $('#sampleId').data().sampleid;
+    var opt = {"renderer": "canvas", "actions": true};  /* Options for the Vega embedding */
+
+    function createDataTable() {
+        return function() {
+            $('#taxonomyTable').DataTable({
+                ajax: {
+                    url: "/api/taxonomy/present/single/" + taxonomy + "/" + sampleId
+                },
+                // dom: 'Bfrtip',
+                // buttons: [
+                //     'copy', 'csv', 'excel', 'pdf', 'print'
+                // ],
+                columns: [
+                    // {data: "sampleId"},
+                    {data: "relativeAbundance"},
+                    // {data: "Kingdom"},
+                    // {data: "Phylum"},
+                    // {data: "Class"},
+                    // {data: "Order"},
+                    {data: "Family"},
+                    {data: "Genus"},
+                ]
+            });
+        }
+    }
+
+    function formatAlphaURL() {
+        let base = '/api/plotting/diversity/alpha/' + metric + '/percentiles-plot';
+        if (sampleId !== "") {
+            base = base + '?sample_id=' + sampleId;
+        }
+        return base;
+    }
+
+    function formatBetaURL() {
+        let base = '/api/plotting/diversity/beta/pcoa/TODO';
+        // if (sampleId !== "") {
+        //     base = base + '?sample_id=' + sampleId;
+        // }
+        return base;
+    }
+
+    function fillPlot(data) {
+        vegaEmbed("#vis", data, opt);
+    }
+
+    function createAlphaPlot() {
+        $.ajax({
+            url: formatAlphaURL(),
+            type: "GET",
+            success: fillPlot
+        });
+    }
+
+    function createBetaPlot() {
+        $.ajax({
+            url: formatBetaURL(),
+            type: "GET",
+            success: function(data) {
+                vegaEmbed("#betaVis", data, opt);
+            }
+        });
+    }
+
+    $(document).ready(
+        createDataTable(),
+        createAlphaPlot(),
+        createBetaPlot()
+    );
+</script>
+
+
+<div id="sampleHeader" style="text-align: center">
+</div>
+<div class="row">
+  <div class="column" style="text-align: center">
+    <h3> What is in your sample? </h3>
+    <div style="padding:10px">
+      <table id="taxonomyTable" class="display" style="width:100%">
+        <thead>
+        <tr>
+<!--          <th>Sample ID</th>-->
+          <th>Relative Abundance</th>
+<!--          <th>Kingdom</th>-->
+<!--          <th>Phylum</th>-->
+<!--          <th>Class</th>-->
+<!--          <th>Order</th>-->
+          <th>Family</th>
+          <th>Genus</th>
+        </tr>
+        </thead>
+      </table>
+    </div>
+  </div>
+
+  <div class="column" style="text-align: center">
+    <h3>Alpha Diversity</h3>
+    <div id="vis"></div>
+  </div>
+</div>
+<h3 style="padding-left: 30px">How do your gut microbes compare to others?</h3>
+<div class="row">
+  <div class="column">
+    <div id="betaVis"></div>
+  </div>
+</div>
+
+<script>
+    function createHeader() {
+        let headSection = document.getElementById('sampleHeader')
+        let headText = document.createElement("H2");
+        // let text = document.createTextNode(sampleId);
+        let text = document.createTextNode("Your name here");
+        headText.appendChild(text);
+        headSection.appendChild(headText);
+    }
+    $(document).ready(
+        createHeader(),
+    )
+</script>
+
+{% endblock %}

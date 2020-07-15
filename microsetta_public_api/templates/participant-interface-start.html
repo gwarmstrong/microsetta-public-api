@@ -1,0 +1,25 @@
+{% extends "demos.html" %}
+{% block head %}
+    {{ super() }}
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $('#button').click(function(e) {
+            var inputvalue = $("#inputSampleId").val();
+            window.location.replace(inputvalue)
+        });
+    });
+    </script>
+
+{% endblock %}
+
+{% block content %}
+<div style="padding:20px">
+  <form>
+    <div class="form-group">
+      <label>Sample ID</label>
+      <input type="text" class="form-control" id="inputSampleId" placeholder="Sample ID">
+    </div>
+    <button id="button" class="btn btn-primary" type="button">Submit</button>
+  </form>
+</div>
+{% endblock %}
