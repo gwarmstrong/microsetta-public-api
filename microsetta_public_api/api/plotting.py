@@ -59,7 +59,7 @@ def plot_alpha_filtered(alpha_metric=None, percentiles=None,
         vertical_line = alt.Chart(sample_df).mark_rule().encode(
             x=alt.X('sample-value'),
             )
-        chart = (chart + vertical_line)
+        chart = (chart + vertical_line).properties(height=250, width=250)
 
     return jsonify(**chart.to_dict()), 200
 
@@ -114,6 +114,51 @@ def plot_alpha_filtered_json_query(body, alpha_metric=None, percentiles=None,
             x=alt.X('sample-value'),
         )
         chart = (chart + vertical_line)
+
+    return jsonify(**chart.to_dict()), 200
+
+
+def plot_beta(beta_metric):
+
+    from vega_datasets import data
+
+    source = data.cars()
+
+    brush = alt.selection(type='interval', resolve='global')
+
+    name = "plymouth satellite"
+    source['Your sample'] = (source['Name'] == name)
+
+    your_sample = pd.DataFrame(source.loc[source['Your sample']])
+    other = source.loc[~source['Your sample']]
+
+    def plot(source):
+        base = alt.Chart(source).mark_circle(
+            stroke='white',
+            strokeWidth=0.4,
+            opacity=1.0,
+        ).encode(
+            y='Miles_per_Gallon',
+            color=alt.condition(brush, 'Origin', alt.ColorValue('gray')),
+            tooltip=['Name', 'Origin', 'Horsepower', 'Miles_per_Gallon',
+                     'Weight_in_lbs',
+                     ],
+            size='Your sample',
+        ).add_selection(
+            brush
+        ).properties(
+            width=250,
+            height=250
+        )
+        return base
+
+    base = plot(source)
+
+    chart = base.encode(x='Horsepower').interactive() | base.encode(
+        x='Acceleration').interactive() | base.encode(
+        x='Weight_in_lbs',
+        color=alt.condition(brush, 'Acceleration', alt.ColorValue('gray')),
+    ).interactive()
 
     return jsonify(**chart.to_dict()), 200
 
