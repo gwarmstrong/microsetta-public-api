@@ -367,6 +367,37 @@ paths:
           description: >
             Either `summary_statistics`, `return_raw`, or both are required to be true.
 
+  '/plotting/diversity/beta/pcoa/{beta_metric}':
+    # TODO this should probably be more like '/plotting/diversity/beta/pcoa/{named_sample_set}
+    get:
+      operationId: microsetta_public_api.api.plotting.plot_beta
+      tags:
+        - Plotting
+        - Beta Diversity
+      summary: Get a Vega schema for PCOA plot
+      description: Get a Vega schema for PCOA plot
+      parameters:
+        - in: path
+          name: beta_metric
+          description: Plot the data for samples using this metric
+          schema:
+            $ref: '#/components/schemas/alphaMetric' # TODO change to betaMetric
+          required: true
+        - in: query
+          name: sample_id
+          schema:
+            $ref: '#/components/schemas/sampleId'
+      responses:
+        '200':
+          description: Successfully returned Vega JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '404':
+          $ref: '#/components/responses/404NotFound'
+
   '/taxonomy/available':
     get:
       operationId: microsetta_public_api.api.taxonomy.resources
