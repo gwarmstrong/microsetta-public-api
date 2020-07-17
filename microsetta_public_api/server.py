@@ -1,9 +1,18 @@
 import json
+from flask import jsonify
 from pkg_resources import resource_filename
 from microsetta_public_api import config
 from microsetta_public_api.resources import resources
+from microsetta_public_api.exceptions import UnknownID
 
 import connexion
+
+
+def handle_unknown_id(e: UnknownID):
+    return jsonify(missing_ids=e.missing_ids,
+                   error=404, text=f"Sample ID(s) not found for "
+                                   f"{e.type_}: {e.value}"), \
+            404
 
 
 def build_app(resources_config_json=None):
@@ -22,6 +31,8 @@ def build_app(resources_config_json=None):
     app_file = resource_filename('microsetta_public_api.api',
                                  'microsetta_public_api.yml')
     app.add_api(app_file, validate_responses=True)
+
+    app.app.register_error_handler(UnknownID, handle_unknown_id)
 
     return app
 

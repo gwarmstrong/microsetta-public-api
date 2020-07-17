@@ -7,6 +7,7 @@ from unittest.mock import patch, PropertyMock
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.models._taxonomy import Taxonomy as TaxonomyModel
 from microsetta_public_api.utils import DataTable
+from microsetta_public_api.exceptions import UnknownID
 from microsetta_public_api.utils.testing import MockedJsonifyTestCase
 from microsetta_public_api.api.taxonomy import (
     resources, summarize_group, _summarize_group, single_sample,
@@ -83,31 +84,33 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                 patch.object(TaxonomyRepo, 'resources') as mock_resources:
             mock_resources.return_value = ['foo-table']
             mock_exists.side_effect = [True, False]
-            response, code = summarize_group(
-                {'sample_ids': ['sample-1', 'sample-baz-bat']}, 'foo-table')
-
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    summarize_group(
+                        {'sample_ids': ['sample-1', 'sample-baz-bat']},
+                        'foo-table')
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids, ['sample-baz-bat'])
+                    self.assertEqual(e.type_, 'resource')
+                    self.assertEqual(e.value, 'foo-table')
+                    raise e
 
         # Multiple IDs do not exist
         with patch.object(TaxonomyRepo, 'exists') as mock_exists, \
                 patch.object(TaxonomyRepo, 'resources') as mock_metrics:
             mock_metrics.return_value = ['bar-table']
             mock_exists.side_effect = [False, False]
-            response, code = summarize_group(
-                {'sample_ids': ['sample-foo-bar',
-                                'sample-baz-bat']}, 'bar-table')
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-foo-bar',
-                              'sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    summarize_group(
+                        {'sample_ids': ['sample-foo-bar',
+                                        'sample-baz-bat']}, 'bar-table')
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids, [
+                        'sample-foo-bar', 'sample-baz-bat'])
+                    self.assertEqual(e.type_, 'resource')
+                    self.assertEqual(e.value, 'bar-table')
+                    raise e
 
     def test_taxonomy_summarize_group_simple(self):
         with patch('microsetta_public_api.repo._taxonomy_repo.TaxonomyRepo.'
@@ -223,31 +226,32 @@ class TaxonomyImplementationTests(MockedJsonifyTestCase):
                 patch.object(TaxonomyRepo, 'resources') as mock_resources:
             mock_resources.return_value = ['foo-table']
             mock_exists.side_effect = [True, False]
-            response, code = _summarize_group(
-                ['sample-1', 'sample-baz-bat'], 'foo-table')
-
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    _summarize_group(
+                        ['sample-1', 'sample-baz-bat'], 'foo-table')
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids, ['sample-baz-bat'])
+                    self.assertEqual(e.type_, 'resource')
+                    self.assertEqual(e.value, 'foo-table')
+                    raise e
 
         # Multiple IDs do not exist
         with patch.object(TaxonomyRepo, 'exists') as mock_exists, \
                 patch.object(TaxonomyRepo, 'resources') as mock_metrics:
             mock_metrics.return_value = ['bar-table']
             mock_exists.side_effect = [False, False]
-            response, code = _summarize_group(
-                ['sample-foo-bar',
-                 'sample-baz-bat'], 'bar-table')
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-foo-bar',
-                              'sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    _summarize_group(
+                        ['sample-foo-bar',
+                         'sample-baz-bat'], 'bar-table')
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids,
+                                          ['sample-foo-bar', 'sample-baz-bat'])
+                    self.assertEqual(e.type_, 'resource')
+                    self.assertEqual(e.value, 'bar-table')
+                    raise e
 
     def test_taxonomy_from_list_summarize_group_simple(self):
         with patch('microsetta_public_api.repo._taxonomy_repo.TaxonomyRepo.'

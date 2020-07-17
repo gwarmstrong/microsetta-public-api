@@ -304,32 +304,34 @@ class AlphaDiversityImplementationTests(MockedJsonifyTestCase):
         self.assertEqual(code, 404)
 
     def test_alpha_diversity_group_unknown_sample(self):
+        from microsetta_public_api.exceptions import UnknownID
         # One ID not found (out of two)
         with patch.object(AlphaRepo, 'exists') as mock_exists, \
                 patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [True, False]
-            response, code = alpha_group(self.post_body, 'observed_otus',
-                                         )
-
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    alpha_group(self.post_body, 'observed_otus',
+                                )
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids, ['sample-baz-bat'])
+                    self.assertEqual(e.type_, 'metric')
+                    self.assertEqual(e.value, 'observed_otus')
+                    raise e
 
         # Multiple IDs do not exist
         with patch.object(AlphaRepo, 'exists') as mock_exists, \
                 patch.object(AlphaRepo, 'available_metrics') as mock_metrics:
             mock_metrics.return_value = ['observed_otus']
             mock_exists.side_effect = [False, False]
-            response, code = alpha_group(self.post_body, 'observed_otus',
-                                         )
-        api_out = json.loads(response.data)
-        self.assertListEqual(api_out['missing_ids'],
-                             ['sample-foo-bar',
-                              'sample-baz-bat'])
-        self.assertRegex(api_out['text'],
-                         r'Sample ID\(s\) not found.')
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    alpha_group(self.post_body, 'observed_otus',
+                                )
+                except UnknownID as e:
+                    self.assertCountEqual(e.missing_ids,
+                                          ['sample-foo-bar', 'sample-baz-bat'])
+                    self.assertEqual(e.type_, 'metric')
+                    self.assertEqual(e.value, 'observed_otus')
+                    raise e

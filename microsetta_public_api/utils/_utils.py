@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 from flask import jsonify as flask_jsonify
+from microsetta_public_api.exceptions import UnknownID
 
 
 def jsonify(*args, **kwargs):
@@ -17,10 +18,8 @@ def validate_resource(available, name, type_):
 
 def check_missing_ids(missing_ids, alpha_metric, type_):
     if len(missing_ids) > 0:
-        return jsonify(missing_ids=missing_ids,
-                       error=404, text=f"Sample ID(s) not found for "
-                                       f"{type_}: {alpha_metric}"), \
-               404
+        raise UnknownID(missing_ids=missing_ids, type_=type_,
+                        value=alpha_metric)
 
 
 _data_table = namedtuple('DataTable', ['data', 'columns'])
