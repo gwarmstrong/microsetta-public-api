@@ -549,7 +549,13 @@ class TaxonomyTaxaPresentDataTableImplementationTests(MockedJsonifyTestCase):
                     'model': self.taxonomy_model,
                 },
             }
-            response, code = group_taxa_present(
-                {'sample_ids': ['sample-1', 'dne-sample']}, "some-table")
-
-        self.assertEqual(code, 404)
+            with self.assertRaises(UnknownID):
+                try:
+                    group_taxa_present(
+                        {'sample_ids': ['sample-1', 'dne-sample']},
+                        "some-table")
+                except UnknownID as e:
+                    self.assertCountEqual(['dne-sample'], e.missing_ids)
+                    self.assertEqual(e.type_, 'resource')
+                    self.assertEqual(e.value, 'some-table')
+                    raise e
