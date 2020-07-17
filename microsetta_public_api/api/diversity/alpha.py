@@ -49,9 +49,7 @@ def alpha_group(body, alpha_metric, summary_statistics=True,
     # for the given metric
     missing_ids = [id_ for id_ in sample_ids if
                    not alpha_repo.exists(id_, alpha_metric)]
-    missing_ids_msg = check_missing_ids(missing_ids, alpha_metric, type_)
-    if missing_ids_msg:
-        return missing_ids_msg
+    check_missing_ids(missing_ids, alpha_metric, type_)
 
     # retrieve the alpha diversity for each sample
     alpha_series = alpha_repo.get_alpha_diversity(sample_ids,

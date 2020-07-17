@@ -27,9 +27,7 @@ def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
     missing_ids = [id_ for id_ in sample_ids if
                    not taxonomy_repo.exists(id_, resource)]
 
-    missing_ids_msg = check_missing_ids(missing_ids, resource, type_)
-    if missing_ids_msg:
-        return missing_ids_msg
+    check_missing_ids(missing_ids, resource, type_)
 
 
 def _summarize_group(sample_ids, table_name):
