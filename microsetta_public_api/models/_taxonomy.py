@@ -129,7 +129,11 @@ class Taxonomy(ModelBase):
                 set(self._features.index):
             raise DisjointError("Table and features are disjoint")
 
+        # This may cause errors later if there rows or columns that are empty
         self._features = self._features.loc[self._feature_order]
+        self._rarity = 1 / self._table.nonzero_counts('observation')
+        self._average = self._table.sum('observation') / len(self._features)
+
         self._variances = self._variances.sort_order(self._feature_order,
                                                      axis='observation')
 
@@ -223,11 +227,16 @@ class Taxonomy(ModelBase):
         entries = list()
         for vec, sample_id, _ in table.iter(dense=False):
             for feature_idx, val in zip(vec.indices, vec.data):
-                entries.append({
-                    **{'sampleId': sample_id,
-                       'relativeAbundance': val},
-                    **feature_data[features[feature_idx]],
-                })
+                rarity = self._rarity[feature_idx]
+                enrichment = val / self._average
+                entry = {
+                    'sampleId': sample_id,
+                    'relativeAbundance': val,
+                    'rarity': rarity,
+                    'enrichment': enrichment,
+                    **self._formatted_taxa_names[features[feature_idx]],
+                }
+                entries.append(entry)
 
         sample_data = pd.DataFrame(entries,
                                    # this enforces the column order
