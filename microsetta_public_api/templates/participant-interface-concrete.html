@@ -56,7 +56,18 @@
                 // ],
                 columns: [
                     // {data: "sampleId"},
-                    {data: "relativeAbundance"},
+                    {
+                        data: "relativeAbundance",
+                        render: $.fn.dataTable.render.number(',', '.', 4),
+                    },
+                    {
+                        data: "rarity",
+                        render: $.fn.dataTable.render.number(',', '.', 4),
+                    },
+                    {
+                        data: "enrichment",
+                        render: $.fn.dataTable.render.number(',', '.', 4),
+                    },
                     // {data: "Kingdom"},
                     // {data: "Phylum"},
                     // {data: "Class"},
@@ -125,8 +136,8 @@
         <tr>
 <!--          <th>Sample ID</th>-->
           <th>Relative Abundance</th>
-<!--          <th>Kingdom</th>-->
-<!--          <th>Phylum</th>-->
+          <th>Rarity</th>
+          <th>Enrichment</th>
 <!--          <th>Class</th>-->
 <!--          <th>Order</th>-->
           <th>Family</th>
