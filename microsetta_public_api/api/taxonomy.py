@@ -1,3 +1,4 @@
+from microsetta_public_api.logging import logger
 from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
@@ -87,7 +88,9 @@ def get_empress(dataset, resource):
     taxonomy_repo = _get_taxonomy_repo(dataset)
     taxonomy_model = taxonomy_repo.model(resource)
     empress_model = Empress(taxonomy_model.bp_tree)
-    return empress_model.to_dict()
+    empress_representation = empress_model.to_dict()
+    logger.info(f"empress_representation: {empress_representation}")
+    return empress_representation
 
 
 def _check_resource_and_missing_ids(taxonomy_repo, sample_ids, resource):
