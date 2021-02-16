@@ -139,11 +139,23 @@ class Taxonomy(ModelBase):
         self._formatter = formatter
 
         # initialize taxonomy tree
-        tree_data = ((i, lineage.split('; '))
-                     for i, lineage in self._features['Taxon'].items())
+        tree_data = list(((i, lineage.split('; '))
+                         for i, lineage in self._features['Taxon'].items()))
         self.taxonomy_tree = skbio.TreeNode.from_taxonomy(tree_data)
         for node in self.taxonomy_tree.traverse():
             node.length = 1
+
+        genus_tree = self.taxonomy_tree.copy()
+        search_names = {lin[min(4, len(lin) - 1)] for i, lin in tree_data}
+        genus_level_nodes = genus_tree.find_by_func(
+            lambda n: n.name in search_names)
+
+        for node in genus_level_nodes:
+            for child in node.children:
+                node.remove(child)
+
+        self.genus_bp_tree = parse_newick(str(genus_tree))
+
         self.bp_tree = parse_newick(str(self.taxonomy_tree))
 
         feature_taxons = self._features

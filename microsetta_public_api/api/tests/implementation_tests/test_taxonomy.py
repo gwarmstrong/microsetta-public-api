@@ -710,7 +710,7 @@ class TestTaxonomyAltImplementation(MockedJsonifyTestCase):
     def test_get_empress(self):
         response = get_empress('dataset1', self.table_name)
         tree_names = [
-            -1, 'feature-1', 'feature-2', 'e', 'd', 'c', 'b', 'feature-3', 'h',
+            -1, 'e', 'd', 'c', 'b', 'h',
             'g', 'f', 'a', None
         ]
         self.assertListEqual(

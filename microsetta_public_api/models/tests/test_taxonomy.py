@@ -238,6 +238,26 @@ class TaxonomyTests(unittest.TestCase):
                 obs_names.append(name)
         self.assertListEqual(exp_names, obs_names)
 
+    def test_genus_tree(self):
+        taxonomy_greengenes_df = pd.DataFrame(
+            [['feature-1', 'k__a; p__b; o__c', 0.123],
+             ['feature-2', 'k__a; p__b; o__c; f__d; g__e; s__i', 0.34],
+             ['feature-3', 'k__a; p__f; o__g; f__h; g__j; s__k', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
+        taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
+        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df)
+        bp_tree = taxonomy.genus_bp_tree
+        exp_names = [
+            'k__a', 'p__b', 'o__c', 'f__d', 'g__e', 'p__f', 'o__g', 'f__h',
+            'g__j',
+        ]
+        obs_names = []
+        for i in range(len(bp_tree.B)):
+            name = bp_tree.name(i)
+            if name is not None:
+                obs_names.append(name)
+        self.assertCountEqual(exp_names, obs_names)
+
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
         exp = GroupTaxonomy(name='sample-2',
