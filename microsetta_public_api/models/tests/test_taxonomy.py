@@ -10,6 +10,7 @@ from microsetta_public_api.models._taxonomy import GroupTaxonomy, Taxonomy
 from microsetta_public_api.exceptions import (DisjointError, UnknownID,
                                               SubsetError)
 from microsetta_public_api.utils import DataTable, create_data_entry
+from empress import Empress
 
 
 class TaxonomyTests(unittest.TestCase):
@@ -257,6 +258,17 @@ class TaxonomyTests(unittest.TestCase):
             if name is not None:
                 obs_names.append(name)
         self.assertCountEqual(exp_names, obs_names)
+
+    def test_genus_tree_empress_compatibility(self):
+        taxonomy_greengenes_df = pd.DataFrame(
+            [['feature-1', 'k__a; p__b; o__c; f__l; g__e', 0.123],
+             ['feature-2', 'k__a; p__b; o__c; f__d; g__e; s__i', 0.34],
+             ['feature-3', 'k__a; p__f; o__g; f__h; g__j; s__k', 0.678]],
+            columns=['Feature ID', 'Taxon', 'Confidence'])
+        taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
+        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df)
+        bp_tree = taxonomy.genus_bp_tree
+        Empress(bp_tree)
 
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)

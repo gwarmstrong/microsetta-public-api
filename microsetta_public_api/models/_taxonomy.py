@@ -150,9 +150,9 @@ class Taxonomy(ModelBase):
         genus_level_nodes = genus_tree.find_by_func(
             lambda n: n.name in search_names)
 
-        for node in genus_level_nodes:
-            for child in node.children:
-                node.remove(child)
+        self.remove_children(genus_level_nodes)
+
+        self.deduplicate_names(genus_tree)
 
         self.genus_bp_tree = parse_newick(str(genus_tree))
 
@@ -162,6 +162,20 @@ class Taxonomy(ModelBase):
         self._formatted_taxa_names = {i: self._formatter.dict_format(lineage)
                                       for i, lineage in
                                       feature_taxons['Taxon'].items()}
+
+    def deduplicate_names(self, genus_tree):
+        names = set()
+        for node in genus_tree.traverse():
+            counter = 1
+            while node.name in names:
+                new_name = f"{node.name}_{counter}"
+                node.name = new_name
+            names.add(node.name)
+
+    def remove_children(self, genus_level_nodes):
+        for node in genus_level_nodes:
+            for child in node.children:
+                node.remove(child)
 
     def _rankdata(self, rank_level) -> (pd.DataFrame, pd.Series):
         # it seems QIIME regressed and no longer produces stable taxonomy
