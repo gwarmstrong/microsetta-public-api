@@ -10,6 +10,7 @@ from microsetta_public_api.utils._utils import (
     check_missing_ids_alt
 )
 from empress import Empress
+import pandas as pd
 
 
 def _get_taxonomy_repo(dataset):
@@ -86,7 +87,14 @@ def single_counts(dataset, resource, sample_id, level):
 def get_empress(dataset, resource):
     taxonomy_repo = _get_taxonomy_repo(dataset)
     taxonomy_model = taxonomy_repo.model(resource)
-    empress_model = Empress(taxonomy_model.bp_tree)
+    bp_tree = taxonomy_model.bp_tree
+    try:
+        empress_model = Empress(bp_tree)
+    except ValueError as e:
+        print(pd.Series([bp_tree.name(i) for i in
+                         range(len(bp_tree.B))]
+                        ).value_counts().sort_values())
+        raise e
     return empress_model.to_dict()
 
 
