@@ -113,7 +113,7 @@ def get_lineage_max_level(features, max_level):
 
         # lineages.add((lineage.pop(), tuple(lineage)))
         lineages.add(tuple(lineage))
-    return list(lineages)
+    return lineages
 
 
 def create_tree_node_from_lineages(lineages):
@@ -139,7 +139,9 @@ def create_tree_node_from_lineages(lineages):
         for i, taxon in enumerate(lineage):
             child_matches = False
             # see if any children of root match name of this taxon
-            node_name = '; '.join((current_root.name, taxon))
+            parts = (current_root.name, taxon) if current_root.name else (
+                taxon,)
+            node_name = '; '.join(parts)
             for child in current_root.children:
                 if child.name == node_name:
                     child_matches = True
