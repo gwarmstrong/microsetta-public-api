@@ -113,7 +113,7 @@ def get_lineage_max_level(features, max_level):
 
         # lineages.add((lineage.pop(), tuple(lineage)))
         lineages.add(tuple(lineage))
-    return lineages
+    return list(lineages)
 
 
 def create_tree_node_from_lineages(lineages):
