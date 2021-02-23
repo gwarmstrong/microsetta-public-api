@@ -225,6 +225,7 @@ class Taxonomy(ModelBase):
         for node in self.taxonomy_tree.traverse():
             node.length = 1
         if genus_tree.children:
+            logger.info('Parsing genus_tree newick.')
             self.bp_tree = parse_newick(str(genus_tree))
         else:
             self.bp_tree = None
