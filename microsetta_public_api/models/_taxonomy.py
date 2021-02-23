@@ -222,6 +222,7 @@ class Taxonomy(ModelBase):
         lineage = get_lineage_max_level(self._features['Taxon'], max_level)
         genus_tree = create_tree_node_from_lineages(lineage)
 
+        logger.info('Adjust branch lengths')
         for node in self.taxonomy_tree.traverse():
             node.length = 1
         if genus_tree.children:
