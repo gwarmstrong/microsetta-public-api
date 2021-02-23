@@ -13,6 +13,7 @@ from bp import parse_newick
 from microsetta_public_api.exceptions import (DisjointError, UnknownID,
                                               SubsetError)
 from microsetta_public_api.utils import DataTable
+from microsetta_public_api.logging import logger
 from ._base import ModelBase
 
 _gt_named = namedtuple('GroupTaxonomy', ['name', 'taxonomy', 'features',
@@ -131,6 +132,8 @@ def create_tree_node_from_lineages(lineages):
 
     """
     root = TreeNode(length=1)
+    logger.info(f'Enter create_tree_node_from_lineages: n_lineages='
+                f'{len(lineages)}')
     for lineage in lineages:
         current_root = root
         for i, taxon in enumerate(lineage):
