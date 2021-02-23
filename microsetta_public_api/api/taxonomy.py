@@ -2,6 +2,7 @@ from microsetta_public_api.repo._taxonomy_repo import TaxonomyRepo
 from microsetta_public_api.utils import jsonify
 from microsetta_public_api.config import schema
 from microsetta_public_api.resources_alt import get_resources
+from microsetta_public_api.logging import logger
 from microsetta_public_api.utils._utils import (
     validate_resource,
     check_missing_ids,
@@ -91,9 +92,9 @@ def get_empress(dataset, resource):
     try:
         empress_model = Empress(bp_tree)
     except ValueError as e:
-        print(pd.Series([bp_tree.name(i) for i in
-                         range(len(bp_tree.B))]
-                        ).value_counts().sort_values())
+        logger.debug(pd.Series([bp_tree.name(i) for i in
+                     range(len(bp_tree.B))]
+                     ).value_counts().sort_values())
         raise e
     return empress_model.to_dict()
 
