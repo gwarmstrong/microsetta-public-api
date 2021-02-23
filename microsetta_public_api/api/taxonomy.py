@@ -92,9 +92,9 @@ def get_empress(dataset, resource):
     try:
         empress_model = Empress(bp_tree)
     except ValueError as e:
-        logger.debug(pd.Series([bp_tree.name(i) for i in
-                     range(len(bp_tree.B))]
-                     ).value_counts().sort_values())
+        logger.info(pd.Series([bp_tree.name(i) for i in
+                    range(len(bp_tree.B))]
+                    ).value_counts().sort_values())
         raise e
     return empress_model.to_dict()
 
