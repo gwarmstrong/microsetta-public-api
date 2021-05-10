@@ -73,6 +73,27 @@ class TaxonomyTests(unittest.TestCase):
                                         columns=['Feature ID', 'Taxon',
                                                  'Confidence'])
         self.taxonomy_df.set_index('Feature ID', inplace=True)
+        self.collapse_table = biom.Table(
+            np.array(
+                [[0, 1, 2],
+                 [2, 4, 6],
+                 [3, 0, 1],
+                 [2, 0, 0],
+                 ]
+            ),
+            ['feature-1', 'feature-2', 'feature-3', 'feature-4'],
+            ['sample-1', 'sample-2', 'sample-3']
+        )
+        self.collapse_taxonomy_df = pd.DataFrame(
+            [['feature-1', 'a; b; c', 0.123],
+             ['feature-2', 'a; b; c; d; e', 0.345],
+             ['feature-3', 'a; f; g; h', 0.478],
+             ['feature-4', 'a', 0.200],
+             ],
+            columns=['Feature ID', 'Taxon', 'Confidence']
+        )
+        self.collapse_taxonomy_df.set_index('Feature ID', inplace=True)
+
         self.table_ranks = self.table.rankdata(inplace=False)
 
         self.table2 = biom.Table(np.array([[0, 1, 2],
@@ -191,6 +212,14 @@ class TaxonomyTests(unittest.TestCase):
         obs = list(taxonomy._ranked_order.index)
         self.assertEqual(obs, exp)
 
+    def test_create_collapsed_table(self):
+        taxonomy = Taxonomy(self.collapse_table, self.collapse_taxonomy_df,
+                            collapse_level=3)
+        obs_ids = taxonomy._collapsed_table.ids('observation')
+        exp_ids = ['a; b; c', 'a; f; g', 'a']
+        self.assertCountEqual(obs_ids, exp_ids)
+        print(str(taxonomy._collapsed_taxonomy_tree))
+
     def test_ranks_sample(self):
         exp = pd.DataFrame([['c', 'sample-1', 1.],
                             ['c', 'sample-2', 1],
@@ -210,6 +239,7 @@ class TaxonomyTests(unittest.TestCase):
 
         obs = taxonomy.ranks_sample(100)
         self.assertEqual(sorted(obs['Taxon'].values),
+                         'k__a; p__b; o__c; f__d; g__e',
                          ['c', 'c', 'c', 'g', 'g'])
 
     def test_ranks_specific(self):
@@ -324,27 +354,32 @@ class TaxonomyTests(unittest.TestCase):
              ['feature-3', 'k__a;  p__f;  o__g;  f__h;  g__', 0.678]],
             columns=['Feature ID', 'Taxon', 'Confidence'])
         taxonomy_greengenes_df.set_index('Feature ID', inplace=True)
-        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df)
+        taxonomy = Taxonomy(self.table, taxonomy_greengenes_df,
+                            collapse_level=6)
         bp_tree = taxonomy.bp_tree
-        exp_parens = 9
+        exp_parens = 11
         obs_parens = sum(bp_tree.B)
         self.assertEqual(exp_parens, obs_parens)
         exp_names = [
-            'k__a',
-            'k__a; p__b',
+            'k__a;',
+            'k__a; p__b;',
+            'k__a; p__b; o__c;',
             'k__a; p__b; o__c',
-            'k__a; p__b; o__c; f__d',
+            'k__a; p__b; o__c; f__d;',
             'k__a; p__b; o__c; f__d; g__e',
-            'k__a; p__f',
-            'k__a; p__f; o__g',
-            'k__a; p__f; o__g; f__h'
+            'k__a; p__f;',
+            'k__a; p__f; o__g;',
+            'k__a; p__f; o__g; f__h;',
+            'k__a; p__f; o__g; f__h; g__',
         ]
+        self.maxDiff = None
         obs_names = []
         for i in range(len(bp_tree.B)):
             name = bp_tree.name(i)
             if name is not None:
                 obs_names.append(name)
         self.assertCountEqual(exp_names, obs_names)
+        print(taxonomy._table_to_tree)
 
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
