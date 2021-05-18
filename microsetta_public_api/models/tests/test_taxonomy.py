@@ -154,14 +154,24 @@ class TaxonomyTests(unittest.TestCase):
 
     def test_init_no_variances(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
-        self.assertEqual(taxonomy._table, self.table.copy().norm())
-        self.assertEqual(taxonomy._variances, self.no_variances)
+        npt.assert_array_almost_equal(
+            taxonomy._table.matrix_data.todense(),
+            self.table.copy().norm().matrix_data.todense())
+        npt.assert_array_almost_equal(
+            taxonomy._variances.matrix_data.todense(),
+            self.no_variances.matrix_data.todense(),
+        )
         pdt.assert_frame_equal(taxonomy._features, self.taxonomy_df)
 
     def test_init_variances(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df, self.table_vars)
-        self.assertEqual(taxonomy._table, self.table.copy().norm())
-        self.assertEqual(taxonomy._variances, self.table_vars)
+        npt.assert_array_almost_equal(
+            taxonomy._table.matrix_data.todense(),
+            self.table.copy().norm().matrix_data.todense())
+        npt.assert_array_almost_equal(
+            taxonomy._variances.matrix_data.todense(),
+            self.table_vars.matrix_data.todense(),
+        )
         pdt.assert_frame_equal(taxonomy._features, self.taxonomy_df)
         self.assertEqual(list(taxonomy._table.ids(axis='observation')),
                          list(taxonomy._features.index))
