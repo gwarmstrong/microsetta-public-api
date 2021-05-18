@@ -218,7 +218,6 @@ class TaxonomyTests(unittest.TestCase):
         obs_ids = taxonomy._collapsed_table.ids('observation')
         exp_ids = ['a; b; c', 'a; f; g', 'a']
         self.assertCountEqual(obs_ids, exp_ids)
-        print(str(taxonomy._collapsed_taxonomy_tree))
 
     def test_ranks_sample(self):
         exp = pd.DataFrame([['c', 'sample-1', 1.],
@@ -239,7 +238,6 @@ class TaxonomyTests(unittest.TestCase):
 
         obs = taxonomy.ranks_sample(100)
         self.assertEqual(sorted(obs['Taxon'].values),
-                         'k__a; p__b; o__c; f__d; g__e',
                          ['c', 'c', 'c', 'g', 'g'])
 
     def test_ranks_specific(self):
@@ -379,7 +377,6 @@ class TaxonomyTests(unittest.TestCase):
             if name is not None:
                 obs_names.append(name)
         self.assertCountEqual(exp_names, obs_names)
-        print(taxonomy._table_to_tree)
 
     def test_get_group(self):
         taxonomy = Taxonomy(self.table, self.taxonomy_df)
